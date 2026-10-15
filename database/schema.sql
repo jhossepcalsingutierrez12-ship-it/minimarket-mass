@@ -1,0 +1,1 @@
+-- Esquema de la base minimarket_mass
