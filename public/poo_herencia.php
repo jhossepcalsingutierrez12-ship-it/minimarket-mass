@@ -1,5 +1,6 @@
 <?php
 declare(strict_types=1);
+header('Content-Type: text/plain; charset=utf-8');
 require __DIR__ . '/../models/Cajero.php';
 require __DIR__ . '/../models/Supervisor.php';
 require __DIR__ . '/../models/Administrador.php';
