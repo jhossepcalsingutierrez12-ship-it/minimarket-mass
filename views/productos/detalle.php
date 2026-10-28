@@ -8,6 +8,7 @@ $e = fn(string $s): string => htmlspecialchars($s, ENT_QUOTES, 'UTF-8');
     <title><?= $e($producto->getNombre()) ?> · Minimarket Mass</title>
 </head>
 <body>
+        <?php require __DIR__ . '/../partials/barra_sesion.php'; ?>
     <h1><?= $e($producto->getNombre()) ?></h1>
     <p>SKU: <?= $e($producto->getCodigoSku()) ?></p>
     <p>Precio (IGV incluido): S/ <?= number_format($producto->getPrecioVenta(), 2) ?></p>
