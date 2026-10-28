@@ -4,31 +4,50 @@ require_once __DIR__ . '/Producto.php';
 
 /**
  * Única clase que sabe de dónde salen los productos.
- * Hoy: lista fija. Sesión 5: SELECT con PDO sobre PRODUCTO JOIN INVENTARIO.
+ * Ahora: SELECT con PDO sobre PRODUCTO JOIN INVENTARIO (relación 1 a 1 por ID_PRODUCTO).
+ * Solo lista productos activos (PRODUCTO.ESTADO = 'A').
  */
 class ProductoRepository
 {
+    private const SELECT = '
+        SELECT p.ID_PRODUCTO, p.CODIGO_SKU, p.NOMBRE, p.PRECIO_VENTA, p.ES_PERECIBLE,
+               i.STOCK_ACTUAL, i.STOCK_MINIMO
+        FROM PRODUCTO p
+        JOIN INVENTARIO i ON i.ID_PRODUCTO = p.ID_PRODUCTO
+        WHERE p.ESTADO = \'A\'';
+
+    // Recibe la conexión ya creada (no la crea él mismo)
+    public function __construct(private PDO $pdo) {}
+
     /** @return Producto[] */
     public function obtenerTodos(): array
     {
-        // id, CODIGO_SKU, NOMBRE, PRECIO_VENTA, ES_PERECIBLE, STOCK_ACTUAL, STOCK_MINIMO
-        return [
-            new Producto(1, 'ABA-0001', 'Arroz Costeño extra 5 kg',     24.90, false, 18, 10),
-            new Producto(2, 'LAC-0001', 'Leche Gloria azul 400 g',       4.20, true,  75, 24),
-            new Producto(3, 'LAC-0002', 'Yogurt Gloria fresa 1 L',        7.90, true,   6, 12),
-            new Producto(4, 'BEB-0001', 'Inca Kola 1.5 L',                8.50, false,  0, 12),
-            new Producto(5, 'ABA-0002', 'Azúcar rubia Cartavio 1 kg',     4.50, false, 60, 20),
-            new Producto(6, 'ABA-0003', 'Aceite Primor 900 ml',          11.90, false, 30, 10),
-        ];
+        $filas = $this->pdo->query(self::SELECT . ' ORDER BY p.ID_PRODUCTO')->fetchAll(PDO::FETCH_ASSOC);
+        return array_map(fn(array $f): Producto => $this->aProducto($f), $filas);
     }
 
     public function buscarPorSku(string $codigoSku): ?Producto
     {
-        foreach ($this->obtenerTodos() as $producto) {
-            if ($producto->getCodigoSku() === $codigoSku) {
-                return $producto;
-            }
-        }
-        return null;
+        // Consulta preparada: el SKU viaja aparte del SQL, así no hay inyección SQL
+        $stmt = $this->pdo->prepare(self::SELECT . ' AND p.CODIGO_SKU = :sku');
+        $stmt->bindValue(':sku', $codigoSku, PDO::PARAM_STR);
+        $stmt->execute();
+        $fila = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return $fila === false ? null : $this->aProducto($fila);
+    }
+
+    // PDO devuelve texto: se convierte a los tipos que pide Producto (strict_types)
+    private function aProducto(array $f): Producto
+    {
+        return new Producto(
+            (int) $f['ID_PRODUCTO'],
+            (string) $f['CODIGO_SKU'],
+            (string) $f['NOMBRE'],
+            (float) $f['PRECIO_VENTA'],
+            $f['ES_PERECIBLE'] === 'S',   // en la base es 'S' / 'N'
+            (int) $f['STOCK_ACTUAL'],
+            (int) $f['STOCK_MINIMO']
+        );
     }
 }
