@@ -4,7 +4,13 @@ declare(strict_types=1);
 require __DIR__ . '/../config/conexion.php';
 require __DIR__ . '/../models/Producto.php';
 require __DIR__ . '/../models/ProductoRepository.php';
+require __DIR__ . '/../models/UsuarioRepository.php';
 require __DIR__ . '/../controllers/ProductoController.php';
+require __DIR__ . '/../controllers/AuthController.php';
+
+// Sesión con cookie protegida: JavaScript no la puede leer (httponly)
+session_set_cookie_params(['httponly' => true, 'samesite' => 'Lax']);
+session_start();
 
 // Si MySQL no responde, se muestra un mensaje simple (sin datos internos del error)
 try {
@@ -21,6 +27,24 @@ try {
 }
 
 $accion = $_GET['accion'] ?? 'listar';
+$auth = new AuthController(new UsuarioRepository($pdo));
+
+// Rutas que no necesitan haber iniciado sesión
+if ($accion === 'login') {
+    $_SERVER['REQUEST_METHOD'] === 'POST' ? $auth->login() : $auth->mostrarLogin();
+    exit;
+}
+if ($accion === 'logout') {
+    $auth->logout();
+    exit;
+}
+
+// Todo lo demás exige haber iniciado sesión
+if (AuthController::usuarioActual() === null) {
+    header('Location: ?accion=login');
+    exit;
+}
+
 $controlador = new ProductoController(new ProductoRepository($pdo));
 
 switch ($accion) {
