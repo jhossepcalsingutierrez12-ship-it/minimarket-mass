@@ -1,20 +1,27 @@
-<?php /** @var Producto $producto */
-$e = fn(string $s): string => htmlspecialchars($s, ENT_QUOTES, 'UTF-8');
+<?php
+/** @var Producto $producto */
+$titulo = $producto->getNombre();
+$seccion = 'catalogo';
+require __DIR__ . '/../partials/cabecera.php';
+
+$sku = $producto->getCodigoSku();
 ?>
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title><?= $e($producto->getNombre()) ?> · Minimarket Mass</title>
-</head>
-<body>
-        <?php require __DIR__ . '/../partials/barra_sesion.php'; ?>
-    <h1><?= $e($producto->getNombre()) ?></h1>
-    <p>SKU: <?= $e($producto->getCodigoSku()) ?></p>
-    <p>Precio (IGV incluido): S/ <?= number_format($producto->getPrecioVenta(), 2) ?></p>
-    <p>Subtotal: S/ <?= number_format($producto->subtotal(), 2) ?> · IGV: S/ <?= number_format($producto->igv(), 2) ?></p>
-    <p>Perecible: <?= $producto->esPerecible() ? 'Sí' : 'No' ?></p>
-    <p>Stock: <?= $producto->getStockActual() ?> (mínimo <?= $producto->getStockMinimo() ?>) · <?= $e($producto->estadoStock()) ?></p>
-    <p><a href="?accion=listar">Volver al catálogo</a></p>
-</body>
-</html>
+<a class="volver" href="?accion=listar">← Volver al catálogo</a>
+<div class="card detalle">
+    <div class="foto"><?= fotoProducto($producto) ?></div>
+    <div>
+        <span class="sku">SKU <?= e($sku) ?> · <?= e(CATEGORIAS[categoriaDe($sku)]['nombre'] ?? 'Sin categoría') ?></span>
+        <h1><?= e($producto->getNombre()) ?></h1>
+        <span class="precio"><?= sol($producto->getPrecioVenta()) ?></span>
+        <dl class="datos">
+            <dt>Precio (IGV incluido)</dt><dd><?= sol($producto->getPrecioVenta()) ?></dd>
+            <dt>Subtotal</dt><dd><?= sol($producto->subtotal()) ?></dd>
+            <dt>IGV 18 %</dt><dd><?= sol($producto->igv()) ?></dd>
+            <dt>Perecible</dt><dd><?= $producto->esPerecible() ? 'Sí' : 'No' ?></dd>
+            <dt>Stock</dt><dd><?= $producto->getStockActual() ?> (mínimo <?= $producto->getStockMinimo() ?>)</dd>
+            <dt>Estado</dt><dd><span class="tag <?= e($producto->estadoStock()) ?>"><?= e($producto->estadoStock()) ?></span></dd>
+        </dl>
+    </div>
+</div>
+
+<?php require __DIR__ . '/../partials/pie.php'; ?>
