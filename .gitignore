@@ -1,1 +1,4 @@
 
+
+# Contraseña del correo que envía los códigos (no se sube)
+config/correo.php
