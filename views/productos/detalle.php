@@ -1,7 +1,7 @@
 <?php
-/** @var Producto $producto */
+/** @var Producto $producto @var array $lotes */
 $titulo = $producto->getNombre();
-$seccion = 'catalogo';
+$seccion = 'listar';
 require __DIR__ . '/../partials/cabecera.php';
 
 $sku = $producto->getCodigoSku();
@@ -20,6 +20,10 @@ $sku = $producto->getCodigoSku();
             <dt>Perecible</dt><dd><?= $producto->esPerecible() ? 'Sí' : 'No' ?></dd>
             <dt>Stock</dt><dd><?= $producto->getStockActual() ?> (mínimo <?= $producto->getStockMinimo() ?>)</dd>
             <dt>Estado</dt><dd><span class="tag <?= e($producto->estadoStock()) ?>"><?= e($producto->estadoStock()) ?></span></dd>
+            <?php if ($lotes): ?>
+                <dt>Lotes</dt>
+                <dd><?php foreach ($lotes as $l): ?><?= e($l['CODIGO_LOTE'] ?? 'Sin código') ?> · vence <?= fecha($l['FECHA_VENCIMIENTO']) ?><br><?php endforeach; ?></dd>
+            <?php endif; ?>
         </dl>
     </div>
 </div>

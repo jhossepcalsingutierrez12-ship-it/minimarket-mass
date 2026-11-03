@@ -1,12 +1,20 @@
 <?php
 declare(strict_types=1);
 
+// Front controller: todas las páginas pasan por aquí (?accion=...)
+date_default_timezone_set('America/Lima');
+
 require __DIR__ . '/../config/conexion.php';
-require __DIR__ . '/../models/Producto.php';
-require __DIR__ . '/../models/ProductoRepository.php';
-require __DIR__ . '/../models/UsuarioRepository.php';
-require __DIR__ . '/../controllers/ProductoController.php';
-require __DIR__ . '/../controllers/AuthController.php';
+foreach (['Producto', 'ProductoRepository', 'UsuarioRepository', 'Repositorio', 'CajaRepository', 'VentaRepository',
+          'LoteRepository', 'MermaRepository', 'IncidenteRepository', 'TiendaRepository', 'ReporteRepository',
+          'Correo', 'Captcha'] as $modelo) {
+    require_once __DIR__ . '/../models/' . $modelo . '.php';
+}
+foreach (['Controlador', 'AuthController', 'ProductoController', 'CajaController', 'VentaController',
+          'InventarioController', 'TiendaController'] as $controlador) {
+    require_once __DIR__ . '/../controllers/' . $controlador . '.php';
+}
+require_once __DIR__ . '/../views/partials/ayudas.php';
 
 // Sesión con cookie protegida: JavaScript no la puede leer (httponly)
 session_set_cookie_params(['httponly' => true, 'samesite' => 'Lax']);
@@ -26,42 +34,93 @@ try {
     exit;
 }
 
-$accion = $_GET['accion'] ?? 'listar';
-$auth = new AuthController(new UsuarioRepository($pdo));
+$accion = (string) ($_GET['accion'] ?? 'listar');
+$esPost = $_SERVER['REQUEST_METHOD'] === 'POST';
+$usuarios = new UsuarioRepository($pdo);
+$auth = new AuthController($usuarios);
 
-// Rutas que no necesitan haber iniciado sesión
-if ($accion === 'login') {
-    $_SERVER['REQUEST_METHOD'] === 'POST' ? $auth->login() : $auth->mostrarLogin();
+// Todo formulario (POST) debe traer el token CSRF de la sesión
+if ($esPost && $accion !== 'login' && !AuthController::tokenValido()) {
+    http_response_code(400);
+    echo 'La página expiró. <a href="?accion=listar">Vuelve a intentarlo</a>.';
     exit;
 }
-if ($accion === 'logout') {
-    $auth->logout();
+
+// Rutas del ingreso (todavía sin sesión iniciada)
+$publicas = [
+    'login'                   => fn() => $esPost ? $auth->login() : $auth->mostrarLogin(),
+    'verificar'               => fn() => $esPost ? $auth->verificarCodigo() : $auth->mostrarCodigo(),
+    'reenviar'                => fn() => $auth->reenviarCodigo(),
+    'cancelar_ingreso'        => fn() => $auth->cancelarIngreso(),
+    'captcha'                 => fn() => Captcha::imagen(),
+    'logout'                  => fn() => $auth->logout(),
+];
+if (isset($publicas[$accion])) {
+    $publicas[$accion]();
     exit;
 }
 
-// Todo lo demás exige haber iniciado sesión
-if (AuthController::usuarioActual() === null) {
+// Todo lo demás exige haber iniciado sesión. El rol se vuelve a leer de la base en cada página.
+$sesion = AuthController::usuarioActual();
+$u = $sesion ? $usuarios->buscarPorId((int) $sesion['id']) : null;
+if ($u === null) {
+    unset($_SESSION['usuario']);
     header('Location: ?accion=login');
     exit;
 }
 
-$controlador = new ProductoController(new ProductoRepository($pdo));
+$productos = new ProductoRepository($pdo);
+$lotes = new LoteRepository($pdo);
+$cajas = new CajaRepository($pdo);
+$tiendas = new TiendaRepository($pdo);
+$tiendaActual = $tiendas->tienda($u->getIdTienda()) ?? [];
 
-switch ($accion) {
-    case 'listar':
-        $controlador->listar();
-        break;
-    case 'ver':
+$catalogo   = new ProductoController($u, $tiendaActual, $productos, $lotes);
+$caja       = new CajaController($u, $tiendaActual, $cajas);
+$ventas     = new VentaController($u, $tiendaActual, new VentaRepository($pdo), $cajas, $productos);
+$inventario = new InventarioController($u, $tiendaActual, $lotes, new MermaRepository($pdo), $productos, $tiendas);
+$tienda     = new TiendaController($u, $tiendaActual, $tiendas, new IncidenteRepository($pdo), new ReporteRepository($pdo), $productos, $cajas);
+
+// [acción => [qué hacer con GET, qué hacer con POST]]
+$rutas = [
+    'listar'       => [fn() => $catalogo->listar(), null],
+    'ver'          => [function () use ($catalogo) {
         // Solo se acepta un SKU con el formato de CODIGO_SKU (letras, números y guion)
         $sku = (string) ($_GET['sku'] ?? '');
-        if (preg_match('/^[A-Z0-9-]{1,20}$/', $sku) !== 1) {
-            http_response_code(404);
-            echo 'Página no encontrada';
-            break;
-        }
-        $controlador->ver($sku);
-        break;
-    default:
-        http_response_code(404);
-        echo 'Página no encontrada';
+        preg_match('/^[A-Z0-9-]{1,20}$/', $sku) === 1 ? $catalogo->ver($sku) : $catalogo->listar();
+    }, null],
+    'agregar'      => [fn() => $catalogo->formularioAgregar(), fn() => $catalogo->agregar()],
+    'editar'       => [fn() => $catalogo->formularioEditar(), fn() => $catalogo->editar()],
+    'baja'         => [fn() => $catalogo->confirmarBaja(), fn() => $catalogo->cambiarEstado('I')],
+    'reactivar'    => [null, fn() => $catalogo->cambiarEstado('A')],
+    'pdf'          => [fn() => $catalogo->pdf(), null],
+
+    'caja'         => [fn() => $caja->index(), null],
+    'caja_abrir'   => [null, fn() => $caja->abrir()],
+    'caja_cerrar'  => [null, fn() => $caja->cerrar()],
+
+    'venta'        => [fn() => $ventas->nueva(), fn() => $ventas->actualizar()],
+    'cliente'      => [fn() => $ventas->buscarCliente(), null],
+    'cobro'        => [fn() => $ventas->cobro(), fn() => $ventas->confirmarPago()],
+    'cancelar_cobro' => [null, fn() => $ventas->cancelarCobro()],
+    'comprobante'  => [fn() => $ventas->comprobante(), null],
+    'ventas'       => [fn() => $ventas->lista(), null],
+    'anular'       => [null, fn() => $ventas->anular()],
+
+    'lotes'        => [fn() => $inventario->lotes(), fn() => $inventario->recibirLote()],
+    'mermas'       => [fn() => $inventario->mermas(), fn() => $inventario->registrarMerma()],
+    'autorizar_merma' => [null, fn() => $inventario->autorizarMerma()],
+
+    'incidentes'   => [fn() => $tienda->incidentes(), fn() => $tienda->reportarIncidente()],
+    'avanzar_incidente' => [null, fn() => $tienda->avanzarIncidente()],
+    'tiendas'      => [fn() => $tienda->tiendas(), null],
+    'reportes'     => [fn() => $tienda->reportes(), null],
+];
+
+$ruta = $rutas[$accion][$esPost ? 1 : 0] ?? null;
+if ($ruta === null) {
+    http_response_code(404);
+    echo 'Página no encontrada. <a href="?accion=listar">Ir al catálogo</a>';
+    exit;
 }
+$ruta();

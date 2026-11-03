@@ -1,21 +1,12 @@
 <?php
 /** @var string $error @var int $espera @var string $token */
-require_once __DIR__ . '/../partials/ayudas.php';
+$titulo = 'Iniciar sesión';
+require __DIR__ . '/_cabeza.php';
 ?>
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Iniciar sesión · Minimarket Mass</title>
-    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/estilos.css">
-    <script src="js/app.js" defer></script>
-</head>
-<body class="pagina-login">
     <form class="login-box" method="post" action="?accion=login" autocomplete="off">
         <div class="login-head">
-            <span class="badge">MASS</span>
+            <span class="badge">MASS</span><br>
+            <span class="paso">Paso 1 de 2</span>
             <h1>Iniciar sesión</h1>
             <p class="sub" style="margin:6px 0 0">Sistema de tiendas · Minimarket Mass Arequipa</p>
         </div>
@@ -30,7 +21,7 @@ require_once __DIR__ . '/../partials/ayudas.php';
 
             <div class="campo">
                 <label for="usuario">Usuario</label>
-                <input id="usuario" name="usuario" maxlength="30" placeholder="ej. rquispe" required autofocus>
+                <input id="usuario" name="usuario" maxlength="30" value="<?= e((string) ($_POST['usuario'] ?? '')) ?>" required autofocus>
             </div>
             <div class="campo">
                 <label for="clave">Contraseña</label>
@@ -40,8 +31,17 @@ require_once __DIR__ . '/../partials/ayudas.php';
                 </div>
             </div>
 
+            <!-- Verifica que eres humano: la imagen girada la arma PHP (?accion=captcha) -->
+            <div class="captcha">
+                <span class="captcha-tit">Verifica que eres humano</span>
+                <div class="captcha-img"><img id="captchaImg" src="?accion=captcha&amp;v=<?= bin2hex(random_bytes(4)) ?>" alt="Logo de Mass girado" width="120" height="120"></div>
+                <label for="giro">Gira el logo hasta que quede derecho</label>
+                <input id="giro" name="giro" type="range" min="0" max="359" value="0" step="1">
+                <a class="captcha-otro" href="?accion=login">Ver otra imagen</a>
+            </div>
+
             <button class="btn amarillo" type="submit" style="width:100%" <?= $espera > 0 ? 'disabled' : '' ?>>Ingresar</button>
-            <p class="sub" style="font-size:.8rem;margin:12px 0 0">Después de 3 intentos fallidos el ingreso se bloquea 30 segundos.</p>
+            <p class="sub" style="font-size:.8rem;margin:12px 0 0">Después de 3 intentos fallidos el ingreso se bloquea 30 segundos. Luego se pide un código que llega a tu correo.</p>
         </div>
     </form>
 </body>
