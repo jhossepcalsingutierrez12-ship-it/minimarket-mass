@@ -7,11 +7,11 @@ date_default_timezone_set('America/Lima');
 require __DIR__ . '/../config/conexion.php';
 foreach (['Producto', 'ProductoRepository', 'UsuarioRepository', 'Repositorio', 'CajaRepository', 'VentaRepository',
           'LoteRepository', 'MermaRepository', 'IncidenteRepository', 'TiendaRepository', 'ReporteRepository',
-          'Correo', 'Captcha'] as $modelo) {
+          'Correo', 'Captcha', 'AsistenteIA'] as $modelo) {
     require_once __DIR__ . '/../models/' . $modelo . '.php';
 }
 foreach (['Controlador', 'AuthController', 'ProductoController', 'CajaController', 'VentaController',
-          'InventarioController', 'TiendaController'] as $controlador) {
+          'InventarioController', 'TiendaController', 'AsistenteController'] as $controlador) {
     require_once __DIR__ . '/../controllers/' . $controlador . '.php';
 }
 require_once __DIR__ . '/../views/partials/ayudas.php';
@@ -79,6 +79,9 @@ $catalogo   = new ProductoController($u, $tiendaActual, $productos, $lotes);
 $caja       = new CajaController($u, $tiendaActual, $cajas);
 $ventas     = new VentaController($u, $tiendaActual, new VentaRepository($pdo), $cajas, $productos);
 $inventario = new InventarioController($u, $tiendaActual, $lotes, new MermaRepository($pdo), $productos, $tiendas);
+$cfgIa      = AsistenteIA::config();
+$asistente  = new AsistenteController($u, $tiendaActual, $cfgIa === null ? null
+    : new AsistenteIA($cfgIa, $u, $tiendaActual, $productos, $cajas, $lotes, new MermaRepository($pdo), $pdo));
 $tienda     = new TiendaController($u, $tiendaActual, $tiendas, new IncidenteRepository($pdo), new ReporteRepository($pdo), $productos, $cajas);
 
 // [acción => [qué hacer con GET, qué hacer con POST]]
@@ -115,6 +118,9 @@ $rutas = [
     'avanzar_incidente' => [null, fn() => $tienda->avanzarIncidente()],
     'tiendas'      => [fn() => $tienda->tiendas(), null],
     'reportes'     => [fn() => $tienda->reportes(), null],
+
+    'asistente'        => [fn() => $asistente->index(), fn() => $asistente->preguntar()],
+    'asistente_borrar' => [null, fn() => $asistente->borrar()],
 ];
 
 $ruta = $rutas[$accion][$esPost ? 1 : 0] ?? null;
