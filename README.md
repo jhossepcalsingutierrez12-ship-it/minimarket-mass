@@ -69,19 +69,6 @@ Para que el correo se envíe de verdad:
 
 Si `config/correo.php` no existe, el código se muestra en pantalla (modo simulado).
 
-## Asistente IA (Google Gemini)
-
-En el menú, **Asistente IA** responde preguntas como «¿cuánto arroz queda?», «¿cuánto se vendió hoy?»,
-«¿qué lotes vencen este mes?» o «¿cómo registro una merma?».
-La IA no entra a la base: pide «herramientas» de PHP (consultas con PDO de solo lectura) y responde con esos datos.
-Cada rol solo ve lo que ya puede ver en el sistema.
-
-Para activarlo:
-
-1. Saca una clave gratis en https://aistudio.google.com/apikey («Create API key»).
-2. Copia `config/ia.ejemplo.php` como `config/ia.php` y pega la clave en `'clave'`.
-3. `config/ia.php` está en `.gitignore`: la clave no se sube a GitHub. Necesita internet.
-
 ## Qué hace cada rol
 
 | Sección | Cajero | Supervisor | Administrador |

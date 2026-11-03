@@ -191,36 +191,3 @@ if (giro) {
   giro.addEventListener('input', girar);
   girar();
 }
-
-// 14. Asistente IA: manda la pregunta a PHP y muestra la respuesta como chat
-const chat = document.getElementById('chat');
-if (chat) {
-  const caja = $('#chatMensajes'), form = $('#chatForm'), entrada = $('#chatPregunta');
-  // Formato mínimo de la respuesta: **negritas** y listas con "- " o "* " (todo lo demás se escapa)
-  const formato = t => {
-    const d = document.createElement('div'); d.textContent = t;
-    return d.innerHTML.replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/^\s*[-*] (.+)$/gm, '• $1');
-  };
-  const burbuja = (clase, texto, html) => {
-    const b = document.createElement('div'); b.className = 'burbuja ' + clase;
-    if (html) b.innerHTML = formato(texto); else b.textContent = texto;
-    caja.appendChild(b); caja.scrollTop = caja.scrollHeight; return b;
-  };
-  caja.querySelectorAll('[data-md]').forEach(b => { b.innerHTML = formato(b.textContent); });
-  caja.scrollTop = caja.scrollHeight;
-  const enviar = async pregunta => {
-    if (!pregunta.trim()) return;
-    burbuja('yo', pregunta);
-    entrada.value = ''; entrada.disabled = true;
-    const espera = burbuja('ia escribiendo', 'Consultando…');
-    const datos = new FormData(); datos.append('csrf', chat.dataset.csrf); datos.append('pregunta', pregunta);
-    try {
-      const r = await fetch('?accion=asistente', {method: 'POST', body: datos}).then(x => x.json());
-      espera.remove();
-      r.error ? burbuja('ia error', r.error) : burbuja('ia', r.respuesta, true);
-    } catch (e) { espera.remove(); burbuja('ia error', 'No hubo respuesta del servidor.'); }
-    entrada.disabled = false; entrada.focus();
-  };
-  form.addEventListener('submit', e => { e.preventDefault(); enviar(entrada.value); });
-  $$('[data-pregunta]').forEach(b => b.addEventListener('click', () => enviar(b.dataset.pregunta)));
-}

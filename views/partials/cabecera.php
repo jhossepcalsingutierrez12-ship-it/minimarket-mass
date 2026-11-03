@@ -18,13 +18,11 @@ $iconos = [
     'pdf'    => '<path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="14 3 14 9 20 9"/>',
     'alerta' => '<path d="M12 3 2 21h20z"/><line x1="12" y1="10" x2="12" y2="14"/><line x1="12" y1="17.5" x2="12" y2="17.6"/>',
     'tienda' => '<path d="M3 9l2-5h14l2 5"/><path d="M4 9v11h16V9"/><path d="M9 20v-6h6v6"/>',
-    'ia'     => '<path d="M12 3l1.8 4.2L18 9l-4.2 1.8L12 15l-1.8-4.2L6 9l4.2-1.8z"/><path d="M19 15l.9 2.1L22 18l-2.1.9L19 21l-.9-2.1L16 18l2.1-.9z"/>',
     'chart'  => '<line x1="4" y1="20" x2="20" y2="20"/><rect x="6" y="11" width="3" height="7"/><rect x="11" y="6" width="3" height="12"/><rect x="16" y="13" width="3" height="5"/>',
 ];
 // [grupo => [[acción, texto, ícono, ¿el rol lo ve?], ...]]
 $menu = [
     'Tienda' => [
-        ['asistente', 'Asistente IA', 'ia', true],
         ['listar', 'Catálogo', 'cat', true],
         ['caja', 'Caja', 'caja', true],
         ['venta', 'Nueva venta', 'carro', true],

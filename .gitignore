@@ -2,6 +2,3 @@
 
 # Contraseña del correo que envía los códigos (no se sube)
 config/correo.php
-
-# Clave del asistente con IA (no se sube)
-config/ia.php
