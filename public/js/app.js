@@ -79,13 +79,17 @@ if (reenviar && reenviar.disabled) {
   }, 1000);
 }
 
-// 5. Reloj de la franja negra: "Martes 03/11/2026 · 08:30"
+// 5. Reloj en tiempo real de la franja negra: "Martes 03/11/2026 · 10:36:05 a. m." (se actualiza cada segundo)
 const relojTop = document.getElementById('reloj');
 if (relojTop) {
   const dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
   const p = n => String(n).padStart(2, '0');
-  const pintar = () => { const d = new Date(); relojTop.textContent = `${dias[d.getDay()]} ${p(d.getDate())}/${p(d.getMonth() + 1)}/${d.getFullYear()} · ${p(d.getHours())}:${p(d.getMinutes())}`; };
-  pintar(); setInterval(pintar, 15000);
+  const pintar = () => {
+    const d = new Date(), h = d.getHours(), h12 = h % 12 || 12;
+    relojTop.textContent = `${dias[d.getDay()]} ${p(d.getDate())}/${p(d.getMonth() + 1)}/${d.getFullYear()} · `
+      + `${p(h12)}:${p(d.getMinutes())}:${p(d.getSeconds())} ${h < 12 ? 'a. m.' : 'p. m.'}`;
+  };
+  pintar(); setInterval(pintar, 1000);
 }
 
 // 6. Códigos QR (Yape/Plin y boleta): PHP deja el texto en data-qr y aquí se dibuja
