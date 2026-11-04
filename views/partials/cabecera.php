@@ -25,7 +25,7 @@ $menu = [
     'Tienda' => [
         ['listar', 'Catálogo', 'cat', true],
         ['caja', 'Caja', 'caja', true],
-        ['venta', 'Nueva venta', 'carro', true],
+        ['venta', 'Nueva venta', 'carro', $u->puedeAbrirCaja()],
         ['ventas', 'Ventas', 'lista', true],
     ],
     'Inventario' => [

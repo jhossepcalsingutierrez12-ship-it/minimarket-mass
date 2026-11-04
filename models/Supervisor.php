@@ -2,7 +2,7 @@
 declare(strict_types=1);
 require_once __DIR__ . '/Usuario.php';
 
-// SESION_CAJA.ID_SUPERVISOR y MERMA.ID_AUTORIZA
+// SESION_CAJA.ID_SUPERVISOR y MERMA.ID_AUTORIZA: no abre caja ni vende; controla y cierra las cajas de los cajeros
 class Supervisor extends Usuario
 {
     public function rol(): string { return 'Supervisor'; }

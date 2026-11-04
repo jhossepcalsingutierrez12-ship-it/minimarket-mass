@@ -14,7 +14,7 @@ class CajaController extends Controlador
 
     public function index(array $errores = [], array $form = []): void
     {
-        $mia = $this->repo->sesionAbiertaDe($this->usuario->getIdEmpleado());
+        $mia = $this->usuario->puedeAbrirCaja() ? $this->repo->sesionAbiertaDe($this->usuario->getIdEmpleado()) : null;
         $this->vista('caja/index', [
             'mia' => $mia,
             'resumen' => $mia ? $this->repo->resumenVentas((int) $mia['ID_SESION']) : null,
@@ -31,6 +31,7 @@ class CajaController extends Controlador
 
     public function abrir(): void
     {
+        $this->exigir($this->usuario->puedeAbrirCaja());
         $form = ['caja' => self::texto('caja', 9), 'turno' => self::texto('turno', 9), 'monto' => self::texto('monto', 12)];
         $monto = self::decimal('monto');
         if ($monto === null) {

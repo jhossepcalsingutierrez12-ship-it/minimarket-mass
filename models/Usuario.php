@@ -22,6 +22,9 @@ class Usuario
 
     public function rol(): string { return 'Empleado'; }
 
+    // SESION_CAJA.ID_CAJERO: solo el cajero abre su caja y vende (R7: sin caja abierta no hay venta)
+    public function puedeAbrirCaja(): bool { return false; }
+
     // SESION_CAJA: el supervisor cuenta el efectivo y cierra la caja
     public function puedeCerrarCaja(): bool { return false; }
 

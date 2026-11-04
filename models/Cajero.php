@@ -2,8 +2,10 @@
 declare(strict_types=1);
 require_once __DIR__ . '/Usuario.php';
 
-// SESION_CAJA.ID_CAJERO: abre su caja, vende y registra mermas; no anula ni autoriza
+// SESION_CAJA.ID_CAJERO: abre su caja, vende y registra mermas; no cierra caja, no anula ni autoriza
 class Cajero extends Usuario
 {
     public function rol(): string { return 'Cajero'; }
+
+    public function puedeAbrirCaja(): bool { return true; }
 }

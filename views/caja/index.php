@@ -9,7 +9,9 @@ require __DIR__ . '/../partials/cabecera.php';
 $csrf = e(AuthController::token());
 ?>
 <h1>Caja</h1>
-<p class="sub">R7: solo se puede vender con una sesión de caja abierta. Al cerrar se cuadra el efectivo.</p>
+<p class="sub"><?= $u->puedeAbrirCaja()
+    ? 'R7: solo se puede vender con una sesión de caja abierta. Al terminar tu turno, el Supervisor cuenta el efectivo y cierra la caja.'
+    : 'Los cajeros abren su caja y venden. Aquí cuentas el efectivo y cierras las cajas abiertas; la diferencia muestra si falta o sobra.' ?></p>
 <?= aviso() ?>
 
 <?php if ($mia): ?>
@@ -25,7 +27,7 @@ $csrf = e(AuthController::token());
         </div>
         <p class="sub" style="margin:0"><?= $u->puedeCerrarCaja() ? 'Puedes cerrarla abajo, en «Cajas abiertas».' : 'Al terminar tu turno, el Supervisor cierra la caja y cuenta el efectivo.' ?></p>
     </div>
-<?php else: ?>
+<?php elseif ($u->puedeAbrirCaja()): ?>
     <h2 class="sec">Abrir caja</h2>
     <?php if ($libres): ?>
         <form class="card form" method="post" action="?accion=caja_abrir" novalidate>

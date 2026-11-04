@@ -51,7 +51,7 @@ Luego abre http://localhost:8000 en el navegador.
 | Usuario | Contraseña | Rol |
 |---|---|---|
 | `jmamani` | `Admin#2026` | Administrador: todo, incluidos productos, personal y reportes |
-| `chuaman` | `Super#2026` | Supervisor: cierra cajas, anula ventas, lotes, autoriza mermas |
+| `chuaman` | `Super#2026` | Supervisor: cierra las cajas, anula ventas, lotes, autoriza mermas |
 | `rquispe` | `Cajero#2026` | Cajero: abre su caja, vende, registra mermas e incidentes |
 
 ## Ingreso en dos pasos
@@ -73,7 +73,8 @@ Si `config/correo.php` no existe, el código se muestra en pantalla (modo simula
 
 | Sección | Cajero | Supervisor | Administrador |
 |---|---|---|---|
-| Catálogo, caja, nueva venta, ventas | ✔ (sus cajas) | ✔ (su tienda) | ✔ (3 tiendas) |
+| Catálogo y ventas | ✔ (sus cajas) | ✔ (su tienda) | ✔ (3 tiendas) |
+| Abrir caja y vender (nueva venta) | ✔ | | |
 | Cerrar caja y anular ventas (R4) | | ✔ | ✔ |
 | Lotes y vencimientos | | ✔ | ✔ |
 | Mermas | registra | registra y autoriza | registra y autoriza |
