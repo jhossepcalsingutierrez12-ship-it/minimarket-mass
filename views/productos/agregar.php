@@ -14,7 +14,8 @@ require __DIR__ . '/../partials/cabecera.php';
         <div class="<?= claseCampo($errores, 'sku') ?>">
             <label for="sku">Código SKU *</label>
             <input id="sku" name="sku" maxlength="8" value="<?= valor($form, 'sku') ?>" autocomplete="off">
-            <span class="hint">Formato ABC-0000. Las 3 letras dan la categoría: ABA, LAC, BEB o LIM.</span>
+            <span class="hint">Formato ABC-0000. Las 3 letras dan la categoría:</span>
+            <span class="guia-cat"><?php foreach (CATEGORIAS as $c => $cat): ?><span><?= imagenCategoria($c, 20) ?><b><?= e($c) ?></b> <?= e($cat['nombre']) ?></span><?php endforeach; ?></span>
             <?= error($errores, 'sku') ?>
         </div>
         <div class="<?= claseCampo($errores, 'nombre') ?>">

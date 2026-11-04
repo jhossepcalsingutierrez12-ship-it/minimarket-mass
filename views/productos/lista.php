@@ -32,7 +32,7 @@ $porReponer = count(array_filter($productos, fn(Producto $p): bool => $p->estado
 <div class="chips solo-js" id="chips" hidden>
     <button type="button" class="chip active" data-cat="">Todas</button>
     <?php foreach (CATEGORIAS as $codigo => $cat): ?>
-        <button type="button" class="chip" data-cat="<?= e($codigo) ?>"><?= e($cat['nombre']) ?></button>
+        <button type="button" class="chip chip-cat" data-cat="<?= e($codigo) ?>"><?= imagenCategoria($codigo, 22) ?><?= e($cat['nombre']) ?></button>
     <?php endforeach; ?>
 </div>
 
@@ -44,7 +44,7 @@ $porReponer = count(array_filter($productos, fn(Producto $p): bool => $p->estado
                  data-estado="<?= e($p->estadoStock()) ?>"
                  data-cat="<?= e(categoriaDe($p->getCodigoSku())) ?>">
             <div class="foto"><?= fotoProducto($p) ?></div>
-            <span class="sku"><?= e($p->getCodigoSku()) ?></span>
+            <div class="sku-cat"><span class="sku"><?= e($p->getCodigoSku()) ?></span><?= etiquetaCategoria($p->getCodigoSku()) ?></div>
             <h3><?= e($p->getNombre()) ?></h3>
             <div><span class="precio"><?= sol($p->getPrecioVenta()) ?></span> <span class="igv">IGV <?= sol($p->igv()) ?></span></div>
             <div class="etiquetas">

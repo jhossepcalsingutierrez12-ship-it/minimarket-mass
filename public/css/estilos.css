@@ -253,3 +253,15 @@ input[type="password"]::-ms-reveal,input[type="password"]::-ms-clear{display:non
 .opcion-tienda small{color:var(--muted);font-size:.8rem}
 .opcion-tienda:has(input:checked){background:var(--y);box-shadow:4px 4px 0 var(--k)}
 .opcion-tienda:has(input:disabled){opacity:.5;cursor:not-allowed}
+/* Imagen de referencia de cada categoría (Abarrotes, Lácteos, Bebidas, Limpieza) */
+.img-cat{display:inline-block;vertical-align:middle;flex:none}
+.chip-cat{display:inline-flex;align-items:center;gap:6px}
+.sku-cat{display:flex;align-items:center;justify-content:space-between;gap:6px;flex-wrap:wrap}
+.cat-ref{display:inline-flex;align-items:center;gap:4px;font-size:.72rem;font-weight:800;text-transform:uppercase;padding:1px 8px 1px 2px;border-radius:999px;white-space:nowrap}
+.cat-ABA{background:#fff3d6;color:#7a4b14}
+.cat-LAC{background:#e3efff;color:#1d4f91}
+.cat-BEB{background:#ffe3e3;color:#8a0c14}
+.cat-LIM{background:#dff7ea;color:#0b4d26}
+.guia-cat{display:flex;flex-wrap:wrap;gap:6px 12px;font-size:.78rem;color:var(--muted)}
+.guia-cat span{display:inline-flex;align-items:center;gap:4px}
+.prod .foto .img-cat,.detalle .foto .img-cat{width:96px;height:96px}

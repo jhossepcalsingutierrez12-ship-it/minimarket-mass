@@ -37,7 +37,7 @@ $serie = str_pad((string) $sesion['ID_TIENDA'], 3, '0', STR_PAD_LEFT);
             <tbody id="filasVenta">
             <?php foreach ($productos as $p): $id = $p->getIdProducto(); ?>
                 <tr data-buscar="<?= e(mb_strtolower($p->getNombre() . ' ' . $p->getCodigoSku())) ?>">
-                    <td><?= fotoSku($p->getCodigoSku(), '', 'mini') ?><?= e($p->getNombre()) ?><br><span class="sku"><?= e($p->getCodigoSku()) ?></span></td>
+                    <td><?= fotoSku($p->getCodigoSku(), '', 'mini') ?><?= e($p->getNombre()) ?><br><span class="sku"><?= e($p->getCodigoSku()) ?></span> <?= etiquetaCategoria($p->getCodigoSku()) ?></td>
                     <td class="num"><?= sol($p->getPrecioVenta()) ?></td>
                     <td class="num"><span class="tag <?= e($p->estadoStock()) ?>"><?= $p->getStockActual() ?></span></td>
                     <td><input class="qty" type="number" min="1" value="1" name="cant[<?= $id ?>]" aria-label="Cantidad de <?= e($p->getNombre()) ?>"></td>
