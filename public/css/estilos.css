@@ -242,3 +242,14 @@ input[type="password"]::-ms-reveal,input[type="password"]::-ms-clear{display:non
 /* Dinero en cajas agrupado por tienda */
 .tabla tr.fila-tienda td{background:var(--y-soft);border-top:2px solid var(--k)}
 .tabla tr.fila-total td{background:var(--y);border-top:2px solid var(--k)}
+/* Al entrar: elegir la tienda donde se abre la caja */
+.elegir-tienda{border:0;padding:0;margin:0}
+.elegir-tienda legend{font-size:.75rem;font-weight:800;text-transform:uppercase;margin-bottom:8px}
+.tiendas-opciones{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.opcion-tienda{display:flex;gap:10px;align-items:flex-start;border:2px solid var(--k);border-radius:6px;padding:12px;cursor:pointer;background:#fff}
+.opcion-tienda input{margin-top:4px;accent-color:var(--k)}
+.opcion-tienda span{display:flex;flex-direction:column;gap:2px}
+.opcion-tienda b{font-size:1.05rem;text-transform:uppercase}
+.opcion-tienda small{color:var(--muted);font-size:.8rem}
+.opcion-tienda:has(input:checked){background:var(--y);box-shadow:4px 4px 0 var(--k)}
+.opcion-tienda:has(input:disabled){opacity:.5;cursor:not-allowed}

@@ -215,3 +215,20 @@ if (tablaCuadre) {
   };
   tablaCuadre.addEventListener('input', revisar);
 }
+
+// 15. Abrir caja al entrar: al elegir la tienda, solo quedan sus cajas
+const radiosTienda = document.querySelectorAll('input[name="tienda"]');
+if (radiosTienda.length && document.getElementById('caja')) {
+  const caja = document.getElementById('caja');
+  const filtrar = () => {
+    const t = [...radiosTienda].find(r => r.checked)?.value;
+    caja.querySelectorAll('optgroup').forEach(g => { g.hidden = !!t && g.dataset.tienda !== t; g.disabled = g.hidden; });
+    const actual = caja.selectedOptions[0];
+    if (!actual || actual.parentElement.disabled) {
+      const primera = caja.querySelector(`optgroup[data-tienda="${t}"] option`);
+      if (primera) primera.selected = true;
+    }
+  };
+  radiosTienda.forEach(r => r.addEventListener('change', filtrar));
+  filtrar();
+}
