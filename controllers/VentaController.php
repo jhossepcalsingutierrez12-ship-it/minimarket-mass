@@ -19,6 +19,7 @@ class VentaController extends Controlador
 
     public function nueva(): void
     {
+        $this->exigir($this->usuario->puedeAbrirCaja());   // solo el cajero vende
         $sesion = $this->cajas->sesionAbiertaDe($this->usuario->getIdEmpleado());
         if ($sesion === null) {
             $this->vista('ventas/sin_caja');
@@ -42,6 +43,7 @@ class VentaController extends Controlador
     // Un solo formulario: agregar, sumar, restar, quitar o pasar a cobrar
     public function actualizar(): void
     {
+        $this->exigir($this->usuario->puedeAbrirCaja());   // solo el cajero vende
         $_SESSION['venta_form'] = [
             'tipo' => ($_POST['tipo'] ?? '') === 'FACTURA' ? 'FACTURA' : 'BOLETA',
             'doc' => preg_replace('/\D/', '', self::texto('doc', 11)),
@@ -155,6 +157,7 @@ class VentaController extends Controlador
     // Pantalla de cobro: QR de Yape/Plin, efectivo con vuelto o POS de tarjeta
     public function cobro(string $error = ''): void
     {
+        $this->exigir($this->usuario->puedeAbrirCaja());   // solo el cajero vende
         $sesion = $this->cajas->sesionAbiertaDe($this->usuario->getIdEmpleado());
         $carrito = $_SESSION['carrito'] ?? [];
         if ($sesion === null || !$carrito || !isset($_SESSION['cobro'])) {
@@ -169,6 +172,7 @@ class VentaController extends Controlador
 
     public function cancelarCobro(): void
     {
+        $this->exigir($this->usuario->puedeAbrirCaja());   // solo el cajero vende
         unset($_SESSION['cobro']);
         $this->aviso('info', 'Cobro cancelado. La venta no se registró y el carrito sigue igual.');
         $this->redirigir('venta');
@@ -176,6 +180,7 @@ class VentaController extends Controlador
 
     public function confirmarPago(): void
     {
+        $this->exigir($this->usuario->puedeAbrirCaja());   // solo el cajero vende
         $sesion = $this->cajas->sesionAbiertaDe($this->usuario->getIdEmpleado());
         $carrito = $_SESSION['carrito'] ?? [];
         $cobro = $_SESSION['cobro'] ?? null;
@@ -226,6 +231,7 @@ class VentaController extends Controlador
 
     public function comprobante(): void
     {
+        $this->exigir($this->usuario->puedeVerVentas());
         $venta = $this->ventas->buscar(self::idGet(), $this->usuario);
         if ($venta === null) {
             $this->redirigir('ventas');
@@ -237,6 +243,7 @@ class VentaController extends Controlador
 
     public function lista(): void
     {
+        $this->exigir($this->usuario->puedeVerVentas());
         $this->vista('ventas/lista', ['ventas' => $this->ventas->listar($this->usuario), 'confirmar' => self::idGet()]);
     }
 

@@ -53,11 +53,10 @@ $pagoEfectivo = array_values(array_filter($v['pagos'], fn($p) => $p['VUELTO'] !=
     </div>
     <div class="qrw" data-qr="<?= e(textoQrSunat($v)) ?>" data-qr-tam="120"></div>
     <div class="c" style="font-size:.72rem">Representación impresa de la <?= $boleta ? 'boleta de venta' : 'factura' ?> electrónica.<br>¡Gracias por su compra!</div>
-    <div class="prueba">DOCUMENTO DE PRUEBA · SIN VALOR TRIBUTARIO</div>
 </div>
 <div class="botones" style="margin-top:16px">
     <button class="btn amarillo" type="button" data-imprimir="imp-ticket">Imprimir comprobante</button>
-    <a class="btn" href="?accion=venta">Nueva venta</a>
+    <?php if ($u->puedeAbrirCaja()): ?><a class="btn" href="?accion=venta">Nueva venta</a><?php endif; ?>
     <a class="btn ghost" href="?accion=ventas">Ver todas las ventas</a>
 </div>
 <p class="sub" style="font-size:.8rem">Sale en tamaño de ticketera (80 mm). En la ventana de impresión también puedes elegir «Guardar como PDF».</p>

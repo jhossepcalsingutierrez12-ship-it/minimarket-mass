@@ -1,7 +1,7 @@
 <?php
 /**
  * @var array $lista @var Producto[] $productos @var array $lotesProducto @var array $zonas
- * @var array $motivos @var array $errores @var array $form @var Usuario $u
+ * @var array $motivos @var array $errores @var array $form @var Usuario $u @var array $tiendas @var ?int $filtro
  */
 $titulo = 'Mermas';
 $seccion = 'mermas';
@@ -11,14 +11,27 @@ $alcance = $u->puedeVerTodasLasTiendas() ? 'Mermas de las 3 tiendas.' : ($u->pue
 $colorMotivo = ['ROBO' => 'bad', 'VENCIMIENTO' => 'warn', 'DETERIORO' => 'gris'];
 ?>
 <h1>Mermas</h1>
-<p class="sub"><?= $alcance ?> Productos dañados, vencidos o robados. Cualquiera las registra; las autoriza un Supervisor o el Administrador, nunca quien la registró (CK_MER_6).</p>
+<p class="sub"><?= $alcance ?> Productos dañados, vencidos o robados. Las registran cajeros y supervisores; las autoriza un Supervisor, nunca quien la registró (CK_MER_6).</p>
 <?= aviso() ?>
+<?php if ($u->puedeVerTodasLasTiendas()): ?>
+    <form class="filtros" method="get">
+        <input type="hidden" name="accion" value="mermas">
+        <select name="tienda" aria-label="Filtrar por tienda" data-enviar>
+            <option value="">Las 3 tiendas</option>
+            <?php foreach ($tiendas as $t): ?>
+                <option value="<?= (int) $t['ID_TIENDA'] ?>" <?= $filtro === (int) $t['ID_TIENDA'] ? 'selected' : '' ?>><?= e($t['NOMBRE']) ?></option>
+            <?php endforeach; ?>
+        </select>
+        <noscript><button class="btn sm">Filtrar</button></noscript>
+    </form>
+<?php endif; ?>
 <div class="tabla"><table>
-    <thead><tr><th>Fecha</th><th>Producto</th><th>Motivo</th><th class="num">Cant.</th><th class="num">Valor</th><th>Registró</th><th>Autorizó</th><th>Estado</th><th></th></tr></thead>
+    <thead><tr><th>Fecha</th><?php if ($u->puedeVerTodasLasTiendas()): ?><th>Tienda</th><?php endif; ?><th>Producto</th><th>Motivo</th><th class="num">Cant.</th><th class="num">Valor</th><th>Registró</th><th>Autorizó</th><th>Estado</th><th></th></tr></thead>
     <tbody>
     <?php foreach ($lista as $m): ?>
         <tr>
             <td class="nw"><?= fecha($m['FECHA']) ?></td>
+            <?php if ($u->puedeVerTodasLasTiendas()): ?><td><?= e($m['TIENDA']) ?><br><span class="sub" style="font-size:.78rem"><?= e($m['ZONA']) ?></span></td><?php endif; ?>
             <td><?= e($m['NOMBRE']) ?>
                 <?php if ($m['CODIGO_LOTE']): ?><br><span class="sku">Lote <?= e($m['CODIGO_LOTE']) ?></span><?php endif; ?>
                 <?php if ($m['OBSERVACION']): ?><br><span class="sub" style="font-size:.78rem"><?= e($m['OBSERVACION']) ?></span><?php endif; ?></td>
@@ -37,10 +50,11 @@ $colorMotivo = ['ROBO' => 'bad', 'VENCIMIENTO' => 'warn', 'DETERIORO' => 'gris']
             <?php endif; ?></td>
         </tr>
     <?php endforeach; ?>
-    <?php if (!$lista): ?><tr><td colspan="9">No hay mermas registradas.</td></tr><?php endif; ?>
+    <?php if (!$lista): ?><tr><td colspan="10">No hay mermas registradas.</td></tr><?php endif; ?>
     </tbody>
 </table></div>
 
+<?php if ($u->puedeRegistrarMerma()): ?>
 <h2 class="sec">Registrar merma</h2>
 <form id="fCambiarProducto" method="get"><input type="hidden" name="accion" value="mermas"></form>
 <form class="card form" method="post" action="?accion=mermas" novalidate>
@@ -93,5 +107,6 @@ $colorMotivo = ['ROBO' => 'bad', 'VENCIMIENTO' => 'warn', 'DETERIORO' => 'gris']
     <div class="msg info" style="margin:0">El costo sale del lote (o del último lote recibido). Valor total = cantidad × costo (CK_MER_4). Al registrar, el stock baja.</div>
     <div class="botones"><button class="btn" type="submit">Registrar merma</button></div>
 </form>
+<?php endif; ?>
 
 <?php require __DIR__ . '/../partials/pie.php'; ?>

@@ -10,7 +10,7 @@ $sku = $producto->getCodigoSku();
 <div class="card detalle">
     <div class="foto"><?= fotoProducto($producto) ?></div>
     <div>
-        <span class="sku">SKU <?= e($sku) ?> · <?= e(CATEGORIAS[categoriaDe($sku)]['nombre'] ?? 'Sin categoría') ?></span>
+        <div class="sku-cat"><span class="sku">SKU <?= e($sku) ?></span><?= etiquetaCategoria($sku) ?></div>
         <h1><?= e($producto->getNombre()) ?></h1>
         <span class="precio"><?= sol($producto->getPrecioVenta()) ?></span>
         <dl class="datos">

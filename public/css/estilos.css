@@ -239,3 +239,29 @@ input[type="password"]::-ms-reveal,input[type="password"]::-ms-clear{display:non
 .captcha label{display:block;font-size:.82rem;color:var(--muted);margin-bottom:4px}
 .captcha input[type=range]{width:100%;accent-color:var(--k)}
 .captcha-otro{font-size:.75rem;color:var(--muted)}
+/* Dinero en cajas agrupado por tienda */
+.tabla tr.fila-tienda td{background:var(--y-soft);border-top:2px solid var(--k)}
+.tabla tr.fila-total td{background:var(--y);border-top:2px solid var(--k)}
+/* Al entrar: elegir la tienda donde se abre la caja */
+.elegir-tienda{border:0;padding:0;margin:0}
+.elegir-tienda legend{font-size:.75rem;font-weight:800;text-transform:uppercase;margin-bottom:8px}
+.tiendas-opciones{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.opcion-tienda{display:flex;gap:10px;align-items:flex-start;border:2px solid var(--k);border-radius:6px;padding:12px;cursor:pointer;background:#fff}
+.opcion-tienda input{margin-top:4px;accent-color:var(--k)}
+.opcion-tienda span{display:flex;flex-direction:column;gap:2px}
+.opcion-tienda b{font-size:1.05rem;text-transform:uppercase}
+.opcion-tienda small{color:var(--muted);font-size:.8rem}
+.opcion-tienda:has(input:checked){background:var(--y);box-shadow:4px 4px 0 var(--k)}
+.opcion-tienda:has(input:disabled){opacity:.5;cursor:not-allowed}
+/* Imagen de referencia de cada categoría (Abarrotes, Lácteos, Bebidas, Limpieza) */
+.img-cat{display:inline-block;vertical-align:middle;flex:none}
+.chip-cat{display:inline-flex;align-items:center;gap:6px}
+.sku-cat{display:flex;align-items:center;justify-content:space-between;gap:6px;flex-wrap:wrap}
+.cat-ref{display:inline-flex;align-items:center;gap:4px;font-size:.72rem;font-weight:800;text-transform:uppercase;padding:1px 8px 1px 2px;border-radius:999px;white-space:nowrap}
+.cat-ABA{background:#fff3d6;color:#7a4b14}
+.cat-LAC{background:#e3efff;color:#1d4f91}
+.cat-BEB{background:#ffe3e3;color:#8a0c14}
+.cat-LIM{background:#dff7ea;color:#0b4d26}
+.guia-cat{display:flex;flex-wrap:wrap;gap:6px 12px;font-size:.78rem;color:var(--muted)}
+.guia-cat span{display:inline-flex;align-items:center;gap:4px}
+.prod .foto .img-cat,.detalle .foto .img-cat{width:96px;height:96px}

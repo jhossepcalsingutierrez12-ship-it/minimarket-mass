@@ -39,19 +39,15 @@ class InventarioController extends Controlador
     {
         $this->exigir($this->usuario->puedeVerLotes());
         $form = ['producto' => self::texto('producto', 9), 'codigo' => strtoupper(self::texto('codigo', 20)),
-                 'vence' => self::texto('vence', 10), 'cantidad' => self::texto('cantidad', 9), 'costo' => self::texto('costo', 12)];
+                 'vence' => self::texto('vence', 10), 'cantidad' => self::texto('cantidad', 9)];
         $p = $this->productos->buscarPorId((int) $form['producto']);
         $errores = [];
         $cant = self::entero('cantidad');
-        $costo = self::decimal('costo');
         if ($p === null || !$p->estaActivo()) {
             $errores['producto'] = 'Elige un producto activo.';
         }
         if ($cant === null || $cant <= 0) {
             $errores['cantidad'] = 'Debe ser un entero mayor que 0 (CK_LOT_1).';
-        }
-        if ($costo === null) {
-            $errores['costo'] = 'Desde 0, con hasta 2 decimales (CK_LOT_2).';
         }
         if ($form['vence'] !== '' && DateTime::createFromFormat('!Y-m-d', $form['vence']) === false) {
             $errores['vence'] = 'Fecha no válida.';
@@ -63,7 +59,7 @@ class InventarioController extends Controlador
             $this->lotes($errores, $form);
             return;
         }
-        $this->lotes->recibir($p->getIdProducto(), $form['codigo'] ?: null, $form['vence'] ?: null, $cant, $costo);
+        $this->lotes->recibir($p->getIdProducto(), $form['codigo'] ?: null, $form['vence'] ?: null, $cant);
         $this->aviso('ok', 'Lote ' . ($form['codigo'] ?: 'sin código') . " recibido: +$cant und. de {$p->getNombre()} (stock ahora " . ($p->getStockActual() + $cant) . ').');
         $this->redirigir('lotes');
     }
@@ -80,8 +76,13 @@ class InventarioController extends Controlador
         // Desde «Lotes» llega ?lote=3 para retirar un lote vencido
         $form += ['producto' => (string) $idSel, 'lote' => (string) ($_GET['lote'] ?? ''),
                   'motivo' => isset($_GET['lote']) ? 'VENCIMIENTO' : '', 'observacion' => isset($_GET['lote']) ? 'Lote vencido retirado de góndola' : ''];
+        $filtro = $this->usuario->puedeVerTodasLasTiendas() ? self::entero('tienda', $_GET) : null;
+        $lista = $this->mermas->listar($this->usuario);
+        if ($filtro) {
+            $lista = array_values(array_filter($lista, fn($m) => (int) $m['ID_TIENDA'] === $filtro));
+        }
         $this->vista('inventario/mermas', [
-            'lista' => $this->mermas->listar($this->usuario), 'productos' => $productos,
+            'lista' => $lista, 'tiendas' => $this->tiendas->tiendas(), 'filtro' => $filtro, 'productos' => $productos,
             'lotesProducto' => $this->lotes->lotesDe($idSel), 'zonas' => $this->tiendas->zonas($this->usuario->getIdTienda()),
             'motivos' => self::MOTIVOS, 'errores' => $errores, 'form' => $form,
         ]);
@@ -89,6 +90,7 @@ class InventarioController extends Controlador
 
     public function registrarMerma(): void
     {
+        $this->exigir($this->usuario->puedeRegistrarMerma());
         $form = ['producto' => self::texto('producto', 9), 'lote' => self::texto('lote', 9), 'zona' => self::texto('zona', 9),
                  'motivo' => self::texto('motivo', 11), 'cantidad' => self::texto('cantidad', 9), 'observacion' => self::texto('observacion', 200)];
         $errores = [];

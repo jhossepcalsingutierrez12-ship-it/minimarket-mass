@@ -24,6 +24,10 @@ Requisitos: Laragon con MySQL en el puerto **3307** y PHP 8.
    mysql -u root -P 3307 minimarket_mass -e "source database/usuarios.sql"
    mysql -u root -P 3307 minimarket_mass -e "source database/extras.sql"
    mysql -u root -P 3307 minimarket_mass -e "source database/ingreso.sql"
+   mysql -u root -P 3307 minimarket_mass -e "source database/cuadre.sql"
+   mysql -u root -P 3307 minimarket_mass -e "source database/tiendas.sql"
+   mysql -u root -P 3307 minimarket_mass -e "source database/cajas.sql"
+   mysql -u root -P 3307 minimarket_mass -e "source database/cajeros.sql"
    ```
 
    - `schema.sql` crea la base `minimarket_mass` y sus 20 tablas.
@@ -31,6 +35,10 @@ Requisitos: Laragon con MySQL en el puerto **3307** y PHP 8.
    - `usuarios.sql` agrega usuario y contraseña (hash) a 3 empleados.
    - `extras.sql` agrega el efectivo recibido y el vuelto en la tabla PAGO.
    - `ingreso.sql` agrega el correo de cada empleado (ahí llega el código de ingreso).
+   - `tiendas.sql` deja las 3 tiendas: Cayma, Cerro Colorado y Yanahuara.
+   - `cajas.sql` deja 3 cajas activas en cada tienda.
+   - `cajeros.sql` agrega un segundo cajero (`jccama`) para probar 2 cajas abiertas.
+   - `cuadre.sql` agrega a LOTE la fecha en que llegó la mercadería (para el cuadre de stock del día).
      **Antes de correrlo cambia los 3 correos** que trae por correos reales.
    - `consultas.sql` tiene consultas de ejemplo (opcional).
 
@@ -50,9 +58,10 @@ Luego abre http://localhost:8000 en el navegador.
 
 | Usuario | Contraseña | Rol |
 |---|---|---|
-| `jmamani` | `Admin#2026` | Administrador: todo, incluidos productos, personal y reportes |
-| `chuaman` | `Super#2026` | Supervisor: cierra cajas, anula ventas, lotes, autoriza mermas |
+| `jmamani` | `Admin#2026` | Administrador: controla (volumen de ventas, mermas, incidentes, cuadre de stock, dinero en cajas), productos y personal |
+| `chuaman` | `Super#2026` | Supervisor: cierra las cajas, anula ventas, lotes, autoriza mermas |
 | `rquispe` | `Cajero#2026` | Cajero: abre su caja, vende, registra mermas e incidentes |
+| `jccama` | `Jorge#2026` | Cajero (Jorge Ccama): igual que rquispe, para abrir una segunda caja |
 
 ## Ingreso en dos pasos
 
@@ -73,10 +82,14 @@ Si `config/correo.php` no existe, el código se muestra en pantalla (modo simula
 
 | Sección | Cajero | Supervisor | Administrador |
 |---|---|---|---|
-| Catálogo, caja, nueva venta, ventas | ✔ (sus cajas) | ✔ (su tienda) | ✔ (3 tiendas) |
-| Cerrar caja y anular ventas (R4) | | ✔ | ✔ |
+| Catálogo | ✔ | ✔ | ✔ |
+| Abrir caja y vender (nueva venta) | ✔ | | |
+| Lista de ventas y comprobantes | sus ventas | su tienda | (solo el volumen en Reportes) |
+| Cerrar caja y anular ventas (R4) | | ✔ | |
+| Dinero en cada caja abierta | | ✔ (al cerrar) | ✔ (solo ver) |
 | Lotes y vencimientos | | ✔ | ✔ |
-| Mermas | registra | registra y autoriza | registra y autoriza |
-| Incidentes | reporta | reporta y da seguimiento | reporta y da seguimiento |
-| Agregar / editar / dar de baja productos, PDF | | | ✔ |
+| Mermas | registra | registra y autoriza | ve las de las 3 tiendas |
+| Incidentes (robos, sismos…) | reporta | reporta y da seguimiento | ve los de las 3 tiendas |
+| Cuadre de stock del día | | | ✔ |
+| Productos (agregar, editar, baja), PDF | | | ✔ |
 | Tiendas y personal, reportes | | | ✔ |

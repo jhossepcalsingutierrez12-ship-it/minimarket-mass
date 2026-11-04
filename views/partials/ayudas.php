@@ -28,7 +28,21 @@ function categoriaDe(string $sku): string
     return substr($sku, 0, 3);
 }
 
-// Foto en public/img/productos/<SKU>.jpg; si no existe, muestra el ícono de la categoría
+// Imagen de la categoría (public/img/categorias/ABA.svg...) para guiarse: Abarrotes, Lácteos, Bebidas, Limpieza
+function imagenCategoria(string $codigo, int $tam = 22): string
+{
+    $cat = CATEGORIAS[$codigo] ?? null;
+    return $cat ? '<img class="img-cat" src="img/categorias/' . e($codigo) . '.svg" width="' . $tam . '" height="' . $tam . '" alt="">' : '';
+}
+
+// Etiqueta de categoría con su imagen: [imagen] Lácteos
+function etiquetaCategoria(string $sku): string
+{
+    $codigo = categoriaDe($sku);
+    return '<span class="cat-ref cat-' . e($codigo) . '">' . imagenCategoria($codigo, 18) . e(CATEGORIAS[$codigo]['nombre'] ?? 'Sin categoría') . '</span>';
+}
+
+// Foto en public/img/productos/<SKU>.jpg; si no existe, muestra la imagen de la categoría
 function fotoProducto(Producto $p): string
 {
     return fotoSku($p->getCodigoSku(), $p->getNombre());
@@ -41,7 +55,7 @@ function fotoSku(string $sku, string $nombre, string $clase = ''): string
         // ?v= cambia cuando se sube otra foto, así el navegador no muestra la vieja
         return '<img' . ($clase ? ' class="' . $clase . '"' : '') . ' src="img/productos/' . rawurlencode($sku) . '.jpg?v=' . filemtime($archivo) . '" alt="' . e($nombre) . '">';
     }
-    return $clase ? '' : '<span aria-hidden="true">' . (CATEGORIAS[categoriaDe($sku)]['icono'] ?? '🛒') . '</span>';
+    return $clase ? '' : (imagenCategoria(categoriaDe($sku), 96) ?: '<span aria-hidden="true">🛒</span>');
 }
 
 // "2026-10-20 08:12:00" -> "20/10/2026 08:12" · "2026-10-20" -> "20/10/2026"

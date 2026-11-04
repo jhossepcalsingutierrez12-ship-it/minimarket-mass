@@ -1,5 +1,5 @@
 <?php
-/** @var array $resumen @var array $porTienda @var array $metodos @var array $top @var Producto[] $reponer @var array $sesiones */
+/** @var array $resumen @var array $porTienda @var array $metodos @var array $top @var Producto[] $reponer */
 $titulo = 'Reportes';
 $seccion = 'reportes';
 require __DIR__ . '/../partials/cabecera.php';
@@ -18,7 +18,6 @@ $barras = function (array $datos, callable $formato): string {
     }
     return $html;
 };
-$historial = $sesiones;
 ?>
 <h1>Reportes</h1>
 <p class="sub">Se calculan con los datos actuales: si vendes o anulas, cambian.</p>
@@ -47,7 +46,4 @@ $historial = $sesiones;
         <?php else: ?><p class="sub">Todo el stock está normal.</p><?php endif; ?>
     </div>
 </div>
-<h2 class="sec">Cuadre de caja</h2>
-<?php require __DIR__ . '/../caja/tabla_sesiones.php'; ?>
-
 <?php require __DIR__ . '/../partials/pie.php'; ?>

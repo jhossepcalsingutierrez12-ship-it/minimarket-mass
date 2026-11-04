@@ -10,12 +10,13 @@ require_once __DIR__ . '/Repositorio.php';
 class MermaRepository extends Repositorio
 {
     private const SELECT = '
-        SELECT m.*, p.NOMBRE, l.CODIGO_LOTE, z.ID_TIENDA,
+        SELECT m.*, p.NOMBRE, l.CODIGO_LOTE, z.ID_TIENDA, z.NOMBRE AS ZONA, t.NOMBRE AS TIENDA,
                r.NOMBRES AS REG_NOMBRES, r.APELLIDOS AS REG_APELLIDOS,
                a.NOMBRES AS AUT_NOMBRES, a.APELLIDOS AS AUT_APELLIDOS
         FROM MERMA m
         JOIN PRODUCTO p    ON p.ID_PRODUCTO = m.ID_PRODUCTO
         JOIN ZONA_TIENDA z ON z.ID_ZONA = m.ID_ZONA
+        JOIN TIENDA t      ON t.ID_TIENDA = z.ID_TIENDA
         JOIN EMPLEADO r    ON r.ID_EMPLEADO = m.ID_REGISTRA
         LEFT JOIN EMPLEADO a ON a.ID_EMPLEADO = m.ID_AUTORIZA
         LEFT JOIN LOTE l     ON l.ID_LOTE = m.ID_LOTE';

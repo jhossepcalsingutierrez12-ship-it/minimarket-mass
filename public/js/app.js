@@ -79,13 +79,17 @@ if (reenviar && reenviar.disabled) {
   }, 1000);
 }
 
-// 5. Reloj de la franja negra: "Martes 03/11/2026 · 08:30"
+// 5. Reloj en tiempo real de la franja negra: "Martes 03/11/2026 · 10:36:05 a. m." (se actualiza cada segundo)
 const relojTop = document.getElementById('reloj');
 if (relojTop) {
   const dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
   const p = n => String(n).padStart(2, '0');
-  const pintar = () => { const d = new Date(); relojTop.textContent = `${dias[d.getDay()]} ${p(d.getDate())}/${p(d.getMonth() + 1)}/${d.getFullYear()} · ${p(d.getHours())}:${p(d.getMinutes())}`; };
-  pintar(); setInterval(pintar, 15000);
+  const pintar = () => {
+    const d = new Date(), h = d.getHours(), h12 = h % 12 || 12;
+    relojTop.textContent = `${dias[d.getDay()]} ${p(d.getDate())}/${p(d.getMonth() + 1)}/${d.getFullYear()} · `
+      + `${p(h12)}:${p(d.getMinutes())}:${p(d.getSeconds())} ${h < 12 ? 'a. m.' : 'p. m.'}`;
+  };
+  pintar(); setInterval(pintar, 1000);
 }
 
 // 6. Códigos QR (Yape/Plin y boleta): PHP deja el texto en data-qr y aquí se dibuja
@@ -190,4 +194,41 @@ if (giro) {
   const girar = () => { img.style.transform = `rotate(${giro.value}deg)`; };
   giro.addEventListener('input', girar);
   girar();
+}
+
+// 14. Cuadre de stock: compara el conteo físico con el stock del sistema
+const tablaCuadre = document.getElementById('tablaCuadre');
+if (tablaCuadre) {
+  const total = document.getElementById('noCuadran');
+  const revisar = () => {
+    let malos = 0, contados = 0;
+    tablaCuadre.querySelectorAll('tbody tr').forEach(tr => {
+      const v = tr.querySelector('.conteo').value, celda = tr.querySelector('.resultado');
+      if (v === '') { celda.innerHTML = '<span class="sub" style="margin:0">Sin contar</span>'; return; }
+      contados++;
+      const dif = parseInt(v, 10) - parseInt(tr.dataset.sistema, 10);
+      if (dif !== 0) malos++;
+      celda.innerHTML = dif === 0 ? '<span class="tag ok">Cuadra ✔</span>'
+        : `<span class="tag bad">${dif < 0 ? 'Faltan ' + (-dif) : 'Sobran ' + dif}</span>`;
+    });
+    total.textContent = contados ? malos : '—';
+  };
+  tablaCuadre.addEventListener('input', revisar);
+}
+
+// 15. Abrir caja al entrar: al elegir la tienda, solo quedan sus cajas
+const radiosTienda = document.querySelectorAll('input[name="tienda"]');
+if (radiosTienda.length && document.getElementById('caja')) {
+  const caja = document.getElementById('caja');
+  const filtrar = () => {
+    const t = [...radiosTienda].find(r => r.checked)?.value;
+    caja.querySelectorAll('optgroup').forEach(g => { g.hidden = !!t && g.dataset.tienda !== t; g.disabled = g.hidden; });
+    const actual = caja.selectedOptions[0];
+    if (!actual || actual.parentElement.disabled) {
+      const primera = caja.querySelector(`optgroup[data-tienda="${t}"] option`);
+      if (primera) primera.selected = true;
+    }
+  };
+  radiosTienda.forEach(r => r.addEventListener('change', filtrar));
+  filtrar();
 }
