@@ -4,6 +4,8 @@ require_once __DIR__ . '/Repositorio.php';
 
 /**
  * Lotes recibidos y sus vencimientos. Tabla LOTE (CK_LOT_1 cantidad > 0, CK_LOT_2 costo >= 0).
+ * El costo unitario ya no se escribe en la pantalla: se toma del último lote del producto
+ * (o, si es el primero, 75 % del precio sin IGV). Lo usan las mermas para calcular la pérdida.
  * Al recibir un lote, su cantidad se suma al stock de INVENTARIO.
  */
 class LoteRepository extends Repositorio
@@ -44,15 +46,21 @@ class LoteRepository extends Repositorio
         return $base . chr(65 + (int) $stmt->fetchColumn());
     }
 
-    public function recibir(int $idProducto, ?string $codigo, ?string $vence, int $cantidad, float $costo): int
+    public function recibir(int $idProducto, ?string $codigo, ?string $vence, int $cantidad): int
     {
-        return $this->enTransaccion(function () use ($idProducto, $codigo, $vence, $cantidad, $costo): int {
+        return $this->enTransaccion(function () use ($idProducto, $codigo, $vence, $cantidad): int {
+            $c = $this->pdo->prepare('
+                SELECT COALESCE(
+                    (SELECT COSTO_UNITARIO FROM LOTE WHERE ID_PRODUCTO = :p1 ORDER BY ID_LOTE DESC LIMIT 1),
+                    (SELECT ROUND(PRECIO_VENTA / 1.18 * 0.75, 2) FROM PRODUCTO WHERE ID_PRODUCTO = :p2), 0)');
+            $c->execute([':p1' => $idProducto, ':p2' => $idProducto]);
+            $costo = (float) $c->fetchColumn();
             $id = $this->siguienteId('LOTE', 'ID_LOTE');
             $this->pdo->prepare('
-                INSERT INTO LOTE (ID_LOTE, ID_PRODUCTO, CODIGO_LOTE, FECHA_VENCIMIENTO, CANTIDAD_RECIBIDA, COSTO_UNITARIO)
-                VALUES (:id, :p, :cod, :vence, :cant, :costo)')
+                INSERT INTO LOTE (ID_LOTE, ID_PRODUCTO, CODIGO_LOTE, FECHA_VENCIMIENTO, CANTIDAD_RECIBIDA, COSTO_UNITARIO, FECHA_RECEPCION)
+                VALUES (:id, :p, :cod, :vence, :cant, :costo, :recibido)')
                 ->execute([':id' => $id, ':p' => $idProducto, ':cod' => $codigo, ':vence' => $vence,
-                           ':cant' => $cantidad, ':costo' => self::dinero($costo)]);
+                           ':cant' => $cantidad, ':costo' => self::dinero($costo), ':recibido' => self::ahora()]);
             // La mercadería recibida entra al inventario
             $this->pdo->prepare('UPDATE INVENTARIO SET STOCK_ACTUAL = STOCK_ACTUAL + :c, FECHA_ULT_CONTEO = :f WHERE ID_PRODUCTO = :p')
                 ->execute([':c' => $cantidad, ':f' => self::ahora(), ':p' => $idProducto]);

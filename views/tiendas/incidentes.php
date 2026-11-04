@@ -8,7 +8,7 @@ $textoEstado = ['ABIERTO' => ['Abierto', 'bad'], 'EN INVESTIGACION' => ['En inve
 $boton = ['ABIERTO' => 'Pasar a investigación', 'EN INVESTIGACION' => 'Cerrar incidente'];
 ?>
 <h1>Incidentes</h1>
-<p class="sub">Robos, sismos, incendios y simulacros según los protocolos de la tienda. Cualquiera reporta; Supervisor y Administrador les dan seguimiento.</p>
+<p class="sub">Robos, sismos, incendios y simulacros según los protocolos de la tienda. Cajeros y supervisores reportan; el Supervisor les da seguimiento. El Administrador ve todos los de las 3 tiendas.</p>
 <?= aviso() ?>
 <div class="tabla"><table>
     <thead><tr><th>Fecha</th><th>Protocolo</th><th>Lugar</th><th>Qué pasó</th><th>Reportó</th><th>Responsable</th><th class="num">Pérdida</th><th>Estado</th><th></th></tr></thead>
@@ -38,6 +38,7 @@ $boton = ['ABIERTO' => 'Pasar a investigación', 'EN INVESTIGACION' => 'Cerrar i
     </tbody>
 </table></div>
 
+<?php if ($u->puedeReportarIncidente()): ?>
 <h2 class="sec">Reportar incidente</h2>
 <form class="card form" method="post" action="?accion=incidentes" novalidate>
     <input type="hidden" name="csrf" value="<?= e(AuthController::token()) ?>">
@@ -82,5 +83,6 @@ $boton = ['ABIERTO' => 'Pasar a investigación', 'EN INVESTIGACION' => 'Cerrar i
     <div class="botones"><button class="btn" type="submit">Reportar</button>
         <span style="font-size:.8rem;color:var(--muted)">El responsable será tu jefe directo (o tú, si no tienes jefe).</span></div>
 </form>
+<?php endif; ?>
 
 <?php require __DIR__ . '/../partials/pie.php'; ?>

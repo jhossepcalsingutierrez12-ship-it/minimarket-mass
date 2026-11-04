@@ -1,7 +1,8 @@
 <?php
 /**
  * @var ?array $mia @var ?array $resumen @var float $efectivoMia @var array $libres @var array $turnos
- * @var array $abiertas @var array $historial @var callable $efectivo @var array $errores @var array $form @var Usuario $u
+ * @var array $abiertas @var array $historial @var callable $efectivo @var callable $vendidoCaja
+ * @var array $errores @var array $form @var Usuario $u
  */
 $titulo = 'Caja';
 $seccion = 'caja';
@@ -11,7 +12,9 @@ $csrf = e(AuthController::token());
 <h1>Caja</h1>
 <p class="sub"><?= $u->puedeAbrirCaja()
     ? 'R7: solo se puede vender con una sesión de caja abierta. Al terminar tu turno, el Supervisor cuenta el efectivo y cierra la caja.'
-    : 'Los cajeros abren su caja y venden. Aquí cuentas el efectivo y cierras las cajas abiertas; la diferencia muestra si falta o sobra.' ?></p>
+    : ($u->puedeVerDineroCajas()
+        ? 'Cuánto dinero en efectivo tiene ahora cada caja abierta de las 3 tiendas. Contar y cerrar las cajas lo hace el Supervisor.'
+        : 'Los cajeros abren su caja y venden. Aquí cuentas el efectivo y cierras las cajas abiertas; la diferencia muestra si falta o sobra.') ?></p>
 <?= aviso() ?>
 
 <?php if ($mia): ?>
@@ -95,8 +98,33 @@ $csrf = e(AuthController::token());
     <?php endif; ?>
 <?php endif; ?>
 
-<h2 class="sec">Historial y cuadre</h2>
-<p class="sub">Diferencia = efectivo contado − efectivo del sistema (negativa = faltante).</p>
-<?php require __DIR__ . '/tabla_sesiones.php'; ?>
+<?php if ($u->puedeVerDineroCajas()): ?>
+    <h2 class="sec">Dinero en cada caja</h2>
+    <?php if ($abiertas): $totalCajas = 0.0; ?>
+        <div class="tabla"><table>
+            <thead><tr><th>Tienda · caja</th><th>Cajero</th><th>Turno</th><th>Abierta desde</th><th class="num">Monto de apertura</th><th class="num">Efectivo en caja</th></tr></thead>
+            <tbody>
+            <?php foreach ($abiertas as $s): $dinero = $efectivo((int) $s['ID_SESION']); $totalCajas += $dinero; ?>
+                <tr>
+                    <td><?= e($s['TIENDA']) ?> · N° <?= (int) $s['NUMERO_CAJA'] ?></td>
+                    <td><?= e(nombreCorto($s['CAJERO_NOMBRES'], $s['CAJERO_APELLIDOS'])) ?></td>
+                    <td><?= e($s['TURNO']) ?></td>
+                    <td class="nw"><?= fecha($s['FECHA_APERTURA']) ?></td>
+                    <td class="num"><?= sol((float) $s['MONTO_APERTURA']) ?></td>
+                    <td class="num"><b><?= sol($dinero) ?></b></td>
+                </tr>
+            <?php endforeach; ?>
+            <tr><td colspan="5"><b>Total en cajas abiertas</b></td><td class="num"><b><?= sol($totalCajas) ?></b></td></tr>
+            </tbody>
+        </table></div>
+        <p class="sub" style="font-size:.8rem">Efectivo en caja = monto de apertura + pagos en efectivo de las ventas emitidas. Yape, Plin y tarjeta no entran a la caja.</p>
+    <?php else: ?>
+        <div class="vacio-box">No hay cajas abiertas en este momento.</div>
+    <?php endif; ?>
+<?php else: ?>
+    <h2 class="sec">Historial y cuadre</h2>
+    <p class="sub">Diferencia = efectivo contado − efectivo del sistema (negativa = faltante).</p>
+    <?php require __DIR__ . '/tabla_sesiones.php'; ?>
+<?php endif; ?>
 
 <?php require __DIR__ . '/../partials/pie.php'; ?>

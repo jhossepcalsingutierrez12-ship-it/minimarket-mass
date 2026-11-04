@@ -26,6 +26,7 @@ class TiendaController extends Controlador
 
     public function reportarIncidente(): void
     {
+        $this->exigir($this->usuario->puedeReportarIncidente());
         $form = ['protocolo' => self::texto('protocolo', 9), 'zona' => self::texto('zona', 9), 'descripcion' => self::texto('descripcion', 400),
                  'heridos' => ($_POST['heridos'] ?? 'N') === 'S' ? 'S' : 'N', 'perdida' => self::texto('perdida', 12), 'pnp' => self::texto('pnp', 20)];
         $errores = [];
@@ -76,6 +77,13 @@ class TiendaController extends Controlador
         ]);
     }
 
+    // Cuadre de stock del día: lo que había al empezar, lo que entró y salió hoy y con cuánto quedó
+    public function cuadreStock(): void
+    {
+        $this->exigir($this->usuario->puedeVerCuadreStock());
+        $this->vista('tiendas/cuadre', ['filas' => $this->reportes->cuadreStockHoy()]);
+    }
+
     public function reportes(): void
     {
         $this->exigir($this->usuario->puedeVerReportes());
@@ -83,7 +91,6 @@ class TiendaController extends Controlador
             'resumen' => $this->reportes->resumen(), 'porTienda' => $this->reportes->ventasPorTienda(),
             'metodos' => $this->reportes->metodosDePago(), 'top' => $this->reportes->masVendidos(),
             'reponer' => array_filter($this->productos->obtenerTodos(), fn(Producto $p) => $p->estadoStock() !== 'Normal'),
-            'sesiones' => $this->cajas->sesiones($this->usuario),
         ]);
     }
 }

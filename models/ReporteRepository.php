@@ -63,6 +63,35 @@ class ReporteRepository extends Repositorio
         return array_map('floatval', $stmt->fetchAll(PDO::FETCH_KEY_PAIR));
     }
 
+    /**
+     * Cuadre de stock de hoy, por producto activo:
+     * inicio del día = stock actual − recibido hoy + vendido hoy + mermas de hoy.
+     * Vendido = ventas EMITIDAS de hoy (si se anuló, el stock ya volvió).
+     */
+    public function cuadreStockHoy(): array
+    {
+        $hoy = date('Y-m-d');
+        $stmt = $this->pdo->prepare("
+            SELECT p.ID_PRODUCTO, p.CODIGO_SKU, p.NOMBRE, i.STOCK_ACTUAL,
+                   COALESCE((SELECT SUM(l.CANTIDAD_RECIBIDA) FROM LOTE l
+                              WHERE l.ID_PRODUCTO = p.ID_PRODUCTO AND DATE(l.FECHA_RECEPCION) = :h1), 0) AS RECIBIDO,
+                   COALESCE((SELECT SUM(d.CANTIDAD) FROM DETALLE_VENTA d JOIN VENTA v ON v.ID_VENTA = d.ID_VENTA
+                              WHERE d.ID_PRODUCTO = p.ID_PRODUCTO AND v.ESTADO = 'EMITIDA' AND DATE(v.FECHA_HORA) = :h2), 0) AS VENDIDO,
+                   COALESCE((SELECT SUM(m.CANTIDAD) FROM MERMA m
+                              WHERE m.ID_PRODUCTO = p.ID_PRODUCTO AND m.FECHA = :h3), 0) AS MERMAS
+            FROM PRODUCTO p JOIN INVENTARIO i ON i.ID_PRODUCTO = p.ID_PRODUCTO
+            WHERE p.ESTADO = 'A' ORDER BY p.CODIGO_SKU");
+        $stmt->execute([':h1' => $hoy, ':h2' => $hoy, ':h3' => $hoy]);
+        return array_map(function (array $f): array {
+            $f['RECIBIDO'] = (int) $f['RECIBIDO'];
+            $f['VENDIDO'] = (int) round((float) $f['VENDIDO']);
+            $f['MERMAS'] = (int) round((float) $f['MERMAS']);
+            $f['STOCK_ACTUAL'] = (int) $f['STOCK_ACTUAL'];
+            $f['INICIO'] = $f['STOCK_ACTUAL'] - $f['RECIBIDO'] + $f['VENDIDO'] + $f['MERMAS'];
+            return $f;
+        }, $stmt->fetchAll(PDO::FETCH_ASSOC));
+    }
+
     private function pares(string $sql): array
     {
         return array_map('floatval', $this->pdo->query($sql)->fetchAll(PDO::FETCH_KEY_PAIR));

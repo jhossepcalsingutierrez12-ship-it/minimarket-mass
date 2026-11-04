@@ -195,3 +195,23 @@ if (giro) {
   giro.addEventListener('input', girar);
   girar();
 }
+
+// 14. Cuadre de stock: compara el conteo físico con el stock del sistema
+const tablaCuadre = document.getElementById('tablaCuadre');
+if (tablaCuadre) {
+  const total = document.getElementById('noCuadran');
+  const revisar = () => {
+    let malos = 0, contados = 0;
+    tablaCuadre.querySelectorAll('tbody tr').forEach(tr => {
+      const v = tr.querySelector('.conteo').value, celda = tr.querySelector('.resultado');
+      if (v === '') { celda.innerHTML = '<span class="sub" style="margin:0">Sin contar</span>'; return; }
+      contados++;
+      const dif = parseInt(v, 10) - parseInt(tr.dataset.sistema, 10);
+      if (dif !== 0) malos++;
+      celda.innerHTML = dif === 0 ? '<span class="tag ok">Cuadra ✔</span>'
+        : `<span class="tag bad">${dif < 0 ? 'Faltan ' + (-dif) : 'Sobran ' + dif}</span>`;
+    });
+    total.textContent = contados ? malos : '—';
+  };
+  tablaCuadre.addEventListener('input', revisar);
+}

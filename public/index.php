@@ -114,6 +114,7 @@ $rutas = [
     'incidentes'   => [fn() => $tienda->incidentes(), fn() => $tienda->reportarIncidente()],
     'avanzar_incidente' => [null, fn() => $tienda->avanzarIncidente()],
     'tiendas'      => [fn() => $tienda->tiendas(), null],
+    'cuadre'       => [fn() => $tienda->cuadreStock(), null],
     'reportes'     => [fn() => $tienda->reportes(), null],
 ];
 

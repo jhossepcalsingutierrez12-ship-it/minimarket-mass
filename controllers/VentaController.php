@@ -231,6 +231,7 @@ class VentaController extends Controlador
 
     public function comprobante(): void
     {
+        $this->exigir($this->usuario->puedeVerVentas());
         $venta = $this->ventas->buscar(self::idGet(), $this->usuario);
         if ($venta === null) {
             $this->redirigir('ventas');
@@ -242,6 +243,7 @@ class VentaController extends Controlador
 
     public function lista(): void
     {
+        $this->exigir($this->usuario->puedeVerVentas());
         $this->vista('ventas/lista', ['ventas' => $this->ventas->listar($this->usuario), 'confirmar' => self::idGet()]);
     }
 

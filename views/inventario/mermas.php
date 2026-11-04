@@ -11,7 +11,7 @@ $alcance = $u->puedeVerTodasLasTiendas() ? 'Mermas de las 3 tiendas.' : ($u->pue
 $colorMotivo = ['ROBO' => 'bad', 'VENCIMIENTO' => 'warn', 'DETERIORO' => 'gris'];
 ?>
 <h1>Mermas</h1>
-<p class="sub"><?= $alcance ?> Productos dañados, vencidos o robados. Cualquiera las registra; las autoriza un Supervisor o el Administrador, nunca quien la registró (CK_MER_6).</p>
+<p class="sub"><?= $alcance ?> Productos dañados, vencidos o robados. Las registran cajeros y supervisores; las autoriza un Supervisor, nunca quien la registró (CK_MER_6).</p>
 <?= aviso() ?>
 <div class="tabla"><table>
     <thead><tr><th>Fecha</th><th>Producto</th><th>Motivo</th><th class="num">Cant.</th><th class="num">Valor</th><th>Registró</th><th>Autorizó</th><th>Estado</th><th></th></tr></thead>
@@ -41,6 +41,7 @@ $colorMotivo = ['ROBO' => 'bad', 'VENCIMIENTO' => 'warn', 'DETERIORO' => 'gris']
     </tbody>
 </table></div>
 
+<?php if ($u->puedeRegistrarMerma()): ?>
 <h2 class="sec">Registrar merma</h2>
 <form id="fCambiarProducto" method="get"><input type="hidden" name="accion" value="mermas"></form>
 <form class="card form" method="post" action="?accion=mermas" novalidate>
@@ -93,5 +94,6 @@ $colorMotivo = ['ROBO' => 'bad', 'VENCIMIENTO' => 'warn', 'DETERIORO' => 'gris']
     <div class="msg info" style="margin:0">El costo sale del lote (o del último lote recibido). Valor total = cantidad × costo (CK_MER_4). Al registrar, el stock baja.</div>
     <div class="botones"><button class="btn" type="submit">Registrar merma</button></div>
 </form>
+<?php endif; ?>
 
 <?php require __DIR__ . '/../partials/pie.php'; ?>
