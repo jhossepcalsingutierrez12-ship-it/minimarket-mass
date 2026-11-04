@@ -76,8 +76,13 @@ class InventarioController extends Controlador
         // Desde «Lotes» llega ?lote=3 para retirar un lote vencido
         $form += ['producto' => (string) $idSel, 'lote' => (string) ($_GET['lote'] ?? ''),
                   'motivo' => isset($_GET['lote']) ? 'VENCIMIENTO' : '', 'observacion' => isset($_GET['lote']) ? 'Lote vencido retirado de góndola' : ''];
+        $filtro = $this->usuario->puedeVerTodasLasTiendas() ? self::entero('tienda', $_GET) : null;
+        $lista = $this->mermas->listar($this->usuario);
+        if ($filtro) {
+            $lista = array_values(array_filter($lista, fn($m) => (int) $m['ID_TIENDA'] === $filtro));
+        }
         $this->vista('inventario/mermas', [
-            'lista' => $this->mermas->listar($this->usuario), 'productos' => $productos,
+            'lista' => $lista, 'tiendas' => $this->tiendas->tiendas(), 'filtro' => $filtro, 'productos' => $productos,
             'lotesProducto' => $this->lotes->lotesDe($idSel), 'zonas' => $this->tiendas->zonas($this->usuario->getIdTienda()),
             'motivos' => self::MOTIVOS, 'errores' => $errores, 'form' => $form,
         ]);

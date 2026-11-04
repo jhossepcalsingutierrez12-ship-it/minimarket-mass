@@ -25,6 +25,7 @@ Requisitos: Laragon con MySQL en el puerto **3307** y PHP 8.
    mysql -u root -P 3307 minimarket_mass -e "source database/extras.sql"
    mysql -u root -P 3307 minimarket_mass -e "source database/ingreso.sql"
    mysql -u root -P 3307 minimarket_mass -e "source database/cuadre.sql"
+   mysql -u root -P 3307 minimarket_mass -e "source database/tiendas.sql"
    ```
 
    - `schema.sql` crea la base `minimarket_mass` y sus 20 tablas.
@@ -32,6 +33,7 @@ Requisitos: Laragon con MySQL en el puerto **3307** y PHP 8.
    - `usuarios.sql` agrega usuario y contraseña (hash) a 3 empleados.
    - `extras.sql` agrega el efectivo recibido y el vuelto en la tabla PAGO.
    - `ingreso.sql` agrega el correo de cada empleado (ahí llega el código de ingreso).
+   - `tiendas.sql` deja las 3 tiendas: Cayma, Cerro Colorado y Yanahuara.
    - `cuadre.sql` agrega a LOTE la fecha en que llegó la mercadería (para el cuadre de stock del día).
      **Antes de correrlo cambia los 3 correos** que trae por correos reales.
    - `consultas.sql` tiene consultas de ejemplo (opcional).

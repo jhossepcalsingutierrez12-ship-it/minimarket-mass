@@ -53,7 +53,6 @@ $pagoEfectivo = array_values(array_filter($v['pagos'], fn($p) => $p['VUELTO'] !=
     </div>
     <div class="qrw" data-qr="<?= e(textoQrSunat($v)) ?>" data-qr-tam="120"></div>
     <div class="c" style="font-size:.72rem">Representación impresa de la <?= $boleta ? 'boleta de venta' : 'factura' ?> electrónica.<br>¡Gracias por su compra!</div>
-    <div class="prueba">DOCUMENTO DE PRUEBA · SIN VALOR TRIBUTARIO</div>
 </div>
 <div class="botones" style="margin-top:16px">
     <button class="btn amarillo" type="button" data-imprimir="imp-ticket">Imprimir comprobante</button>

@@ -76,7 +76,7 @@ $tiendas = new TiendaRepository($pdo);
 $tiendaActual = $tiendas->tienda($u->getIdTienda()) ?? [];
 
 $catalogo   = new ProductoController($u, $tiendaActual, $productos, $lotes);
-$caja       = new CajaController($u, $tiendaActual, $cajas);
+$caja       = new CajaController($u, $tiendaActual, $cajas, $tiendas);
 $ventas     = new VentaController($u, $tiendaActual, new VentaRepository($pdo), $cajas, $productos);
 $inventario = new InventarioController($u, $tiendaActual, $lotes, new MermaRepository($pdo), $productos, $tiendas);
 $tienda     = new TiendaController($u, $tiendaActual, $tiendas, new IncidenteRepository($pdo), new ReporteRepository($pdo), $productos, $cajas);

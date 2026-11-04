@@ -7,7 +7,7 @@ declare(strict_types=1);
  */
 class CajaController extends Controlador
 {
-    public function __construct(Usuario $usuario, array $tienda, private CajaRepository $repo)
+    public function __construct(Usuario $usuario, array $tienda, private CajaRepository $repo, private TiendaRepository $tiendas)
     {
         parent::__construct($usuario, $tienda);
     }
@@ -19,7 +19,9 @@ class CajaController extends Controlador
             'mia' => $mia,
             'resumen' => $mia ? $this->repo->resumenVentas((int) $mia['ID_SESION']) : null,
             'efectivoMia' => $mia ? $this->repo->efectivoSistema((int) $mia['ID_SESION']) : 0.0,
-            'libres' => $this->repo->cajasLibres($this->usuario->getIdTienda()),
+            'libres' => $this->repo->cajasLibres(),
+            'cajas' => $this->repo->cajasConEstado(),
+            'tiendas' => $this->tiendas->tiendas(),
             'turnos' => $this->repo->turnos(),
             'abiertas' => $this->usuario->puedeCerrarCaja() || $this->usuario->puedeVerDineroCajas() ? $this->repo->sesiones($this->usuario, true) : [],
             'vendidoCaja' => fn(int $id): array => $this->repo->resumenVentas($id),

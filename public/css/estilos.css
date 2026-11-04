@@ -239,3 +239,6 @@ input[type="password"]::-ms-reveal,input[type="password"]::-ms-clear{display:non
 .captcha label{display:block;font-size:.82rem;color:var(--muted);margin-bottom:4px}
 .captcha input[type=range]{width:100%;accent-color:var(--k)}
 .captcha-otro{font-size:.75rem;color:var(--muted)}
+/* Dinero en cajas agrupado por tienda */
+.tabla tr.fila-tienda td{background:var(--y-soft);border-top:2px solid var(--k)}
+.tabla tr.fila-total td{background:var(--y);border-top:2px solid var(--k)}

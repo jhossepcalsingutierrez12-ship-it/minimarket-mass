@@ -18,8 +18,13 @@ class TiendaController extends Controlador
 
     public function incidentes(array $errores = [], array $form = []): void
     {
+        $filtro = $this->usuario->puedeVerTodasLasTiendas() ? self::entero('tienda', $_GET) : null;
+        $lista = $this->incidentes->listar($this->usuario);
+        if ($filtro) {
+            $lista = array_values(array_filter($lista, fn($i) => (int) $i['ID_TIENDA'] === $filtro));
+        }
         $this->vista('tiendas/incidentes', [
-            'lista' => $this->incidentes->listar($this->usuario), 'protocolos' => $this->incidentes->protocolos(),
+            'lista' => $lista, 'tiendas' => $this->tiendas->tiendas(), 'filtro' => $filtro, 'protocolos' => $this->incidentes->protocolos(),
             'zonas' => $this->tiendas->zonas($this->usuario->getIdTienda()), 'errores' => $errores, 'form' => $form,
         ]);
     }

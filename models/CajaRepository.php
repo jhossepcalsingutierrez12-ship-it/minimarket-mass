@@ -9,7 +9,7 @@ require_once __DIR__ . '/Repositorio.php';
 class CajaRepository extends Repositorio
 {
     private const SELECT_SESION = '
-        SELECT s.*, c.NUMERO_CAJA, c.ID_TIENDA, t.NOMBRE AS TIENDA, tu.NOMBRE AS TURNO,
+        SELECT s.*, c.NUMERO_CAJA, c.ID_TIENDA, t.NOMBRE AS TIENDA, t.DIRECCION, t.DISTRITO, tu.NOMBRE AS TURNO,
                e.NOMBRES AS CAJERO_NOMBRES, e.APELLIDOS AS CAJERO_APELLIDOS
         FROM SESION_CAJA s
         JOIN CAJA c     ON c.ID_CAJA = s.ID_CAJA
@@ -41,17 +41,28 @@ class CajaRepository extends Repositorio
         return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
     }
 
-    // Cajas activas de la tienda que no tienen una sesión abierta
-    public function cajasLibres(int $idTienda): array
+    /**
+     * Las cajas de las 3 tiendas con su lugar y cómo están ahora:
+     * LIBRE, ABIERTA (con el nombre del cajero) o FUERA DE SERVICIO (CAJA.ESTADO = 'I').
+     */
+    public function cajasConEstado(): array
     {
-        $stmt = $this->pdo->prepare("
-            SELECT c.ID_CAJA, c.NUMERO_CAJA, t.NOMBRE AS TIENDA
-            FROM CAJA c JOIN TIENDA t ON t.ID_TIENDA = c.ID_TIENDA
-            WHERE c.ID_TIENDA = :t AND c.ESTADO = 'A'
-              AND NOT EXISTS (SELECT 1 FROM SESION_CAJA s WHERE s.ID_CAJA = c.ID_CAJA AND s.ESTADO = 'ABIERTA')
-            ORDER BY c.NUMERO_CAJA");
-        $stmt->execute([':t' => $idTienda]);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return $this->pdo->query("
+            SELECT c.ID_CAJA, c.NUMERO_CAJA, c.ESTADO AS ESTADO_CAJA, c.ID_TIENDA,
+                   t.NOMBRE AS TIENDA, t.DIRECCION, t.DISTRITO,
+                   (SELECT z.NOMBRE FROM ZONA_TIENDA z WHERE z.ID_TIENDA = c.ID_TIENDA AND z.TIPO = 'CAJA' LIMIT 1) AS ZONA,
+                   s.ID_SESION, e.NOMBRES AS CAJERO_NOMBRES, e.APELLIDOS AS CAJERO_APELLIDOS
+            FROM CAJA c
+            JOIN TIENDA t ON t.ID_TIENDA = c.ID_TIENDA
+            LEFT JOIN SESION_CAJA s ON s.ID_CAJA = c.ID_CAJA AND s.ESTADO = 'ABIERTA'
+            LEFT JOIN EMPLEADO e ON e.ID_EMPLEADO = s.ID_CAJERO
+            ORDER BY c.ID_TIENDA, c.NUMERO_CAJA")->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    // Cajas activas (de cualquiera de las 3 tiendas) que no tienen una sesión abierta
+    public function cajasLibres(): array
+    {
+        return array_values(array_filter($this->cajasConEstado(), fn($c) => $c['ESTADO_CAJA'] === 'A' && $c['ID_SESION'] === null));
     }
 
     /**
@@ -72,9 +83,9 @@ class CajaRepository extends Repositorio
     public function abrir(int $idCaja, Usuario $cajero, int $idTurno, float $monto): int
     {
         return $this->enTransaccion(function () use ($idCaja, $cajero, $idTurno, $monto): int {
-            $libre = array_filter($this->cajasLibres($cajero->getIdTienda()), fn($c) => (int) $c['ID_CAJA'] === $idCaja);
+            $libre = array_filter($this->cajasLibres(), fn($c) => (int) $c['ID_CAJA'] === $idCaja);
             if (!$libre) {
-                throw new DomainException('Esa caja no está libre o no es de tu tienda.');
+                throw new DomainException('Esa caja ya está abierta o está fuera de servicio.');
             }
             if ($this->sesionAbiertaDe($cajero->getIdEmpleado()) !== null) {
                 throw new DomainException('Ya tienes una caja abierta.');

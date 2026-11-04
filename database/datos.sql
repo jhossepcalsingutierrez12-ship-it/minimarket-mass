@@ -12,7 +12,7 @@ USE minimarket_mass;
 INSERT INTO TIENDA (ID_TIENDA, CODIGO_TIENDA, NOMBRE, RUC_EMPRESA, RAZON_SOCIAL, DIRECCION, DISTRITO, TELEFONO, AREA_M2, AFORO, HORA_APERTURA, HORA_CIERRE, FECHA_APERTURA, NRO_CERTIFICADO_ITSE, FECHA_VENC_ITSE) VALUES
   (1, 'AQP-01', 'Mass Cayma', '20601234567', 'Minimarket Mass Arequipa S.A.C.', 'Av. Ejército 1020', 'Cayma', '054-251100', 180.00, 60, '07:00', '23:00', '2023-03-15', 'ITSE-2025-0412', '2027-03-14'),
   (2, 'AQP-02', 'Mass Cerro Colorado', '20601234567', 'Minimarket Mass Arequipa S.A.C.', 'Av. Aviación 2315', 'Cerro Colorado', '054-251200', 150.00, 45, '07:00', '22:00', '2024-01-20', 'ITSE-2025-0587', '2026-12-10'),
-  (3, 'AQP-03', 'Mass José Luis Bustamante', '20601234567', 'Minimarket Mass Arequipa S.A.C.', 'Av. Dolores 410', 'José Luis Bustamante y Rivero', NULL, 120.00, 40, '07:00', '22:00', '2025-06-02', NULL, NULL);
+  (3, 'AQP-03', 'Mass Yanahuara', '20601234567', 'Minimarket Mass Arequipa S.A.C.', 'Av. Emmel 120', 'Yanahuara', NULL, 120.00, 40, '07:00', '22:00', '2025-06-02', NULL, NULL);
 
 INSERT INTO ZONA_TIENDA (ID_ZONA, ID_TIENDA, NOMBRE, TIPO, ES_ZONA_SEGURA) VALUES
   (1, 1, 'Salón de ventas', 'VENTA', 'N'),
