@@ -32,26 +32,61 @@ class CajaController extends Controlador
         ]);
     }
 
+    /**
+     * Pantalla al iniciar sesión (solo cajero sin caja abierta): elige en qué tienda
+     * abre (Cayma, Cerro Colorado o Yanahuara), la caja, el turno y el monto.
+     */
+    public function inicio(array $errores = [], array $form = []): void
+    {
+        if (!$this->usuario->puedeAbrirCaja() || $this->repo->sesionAbiertaDe($this->usuario->getIdEmpleado()) !== null) {
+            $this->redirigir('listar');
+        }
+        // Turno sugerido según la hora: antes de las 3 p. m. Mañana, después Tarde
+        $turnos = $this->repo->turnos();
+        $sugerido = '';
+        foreach ($turnos as $id => $t) {
+            if (date('H:i') >= $t['HORA_INICIO'] && date('H:i') < $t['HORA_FIN']) {
+                $sugerido = (string) $id;
+            }
+        }
+        $this->vista('caja/inicio', [
+            'tiendas' => $this->tiendas->tiendas(), 'libres' => $this->repo->cajasLibres(), 'turnos' => $turnos,
+            'errores' => $errores, 'form' => $form + ['tienda' => (string) $this->usuario->getIdTienda(), 'turno' => $sugerido ?: (string) array_key_first($turnos)],
+        ]);
+    }
+
     public function abrir(): void
     {
         $this->exigir($this->usuario->puedeAbrirCaja());
-        $form = ['caja' => self::texto('caja', 9), 'turno' => self::texto('turno', 9), 'monto' => self::texto('monto', 12)];
+        $desdeInicio = ($_POST['desde'] ?? '') === 'inicio';
+        $form = ['tienda' => self::texto('tienda', 9), 'caja' => self::texto('caja', 9), 'turno' => self::texto('turno', 9), 'monto' => self::texto('monto', 12)];
+        $volver = fn(array $err) => $desdeInicio ? $this->inicio($err, $form) : $this->index($err, $form);
         $monto = self::decimal('monto');
-        if ($monto === null) {
-            $this->index(['monto' => 'Escribe el monto con el que abres (desde 0).'], $form);
+        $libre = array_values(array_filter($this->repo->cajasLibres(), fn($c) => (string) $c['ID_CAJA'] === $form['caja']))[0] ?? null;
+        if ($libre === null) {
+            $volver(['caja' => 'Elige una caja libre.']);
+            return;
+        }
+        if ($form['tienda'] !== '' && (string) $libre['ID_TIENDA'] !== $form['tienda']) {
+            $volver(['caja' => 'Esa caja no es de la tienda que elegiste.']);
             return;
         }
         if (!isset($this->repo->turnos()[(int) $form['turno']])) {
-            $this->index(['turno' => 'Elige el turno.'], $form);
+            $volver(['turno' => 'Elige el turno.']);
+            return;
+        }
+        if ($monto === null) {
+            $volver(['monto' => 'Escribe el monto con el que abres (desde 0).']);
             return;
         }
         try {
             $id = $this->repo->abrir((int) $form['caja'], $this->usuario, (int) $form['turno'], $monto);
-            $this->aviso('ok', "Caja abierta: sesión $id. Ya puedes vender.");
+            $this->aviso('ok', "Caja abierta en {$libre['TIENDA']} · Caja N° {$libre['NUMERO_CAJA']} con " . sol($monto) . " (sesión $id). Ya puedes vender.");
         } catch (DomainException $e) {
             $this->aviso('err', $e->getMessage());
+            $this->redirigir($desdeInicio ? 'caja_inicio' : 'caja');
         }
-        $this->redirigir('caja');
+        $this->redirigir($desdeInicio ? 'venta' : 'caja');
     }
 
     public function cerrar(): void
