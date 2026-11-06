@@ -16,7 +16,7 @@
             <td class="num"><?= $s['EFECTIVO_SISTEMA'] === null ? '—' : sol((float) $s['EFECTIVO_SISTEMA']) ?></td>
             <td class="num"><?= $s['EFECTIVO_CONTADO'] === null ? '—' : sol((float) $s['EFECTIVO_CONTADO']) ?></td>
             <td class="num <?= $dif === null ? '' : ($dif < 0 ? 'neg' : ($dif > 0 ? 'posi' : '')) ?>"><?= $dif === null ? '—' : sol($dif) ?></td>
-            <td><?= tag($s['ESTADO'], $s['ESTADO'] === 'ABIERTA' ? 'warn' : 'ok') ?></td>
+            <td><?= $s['ESTADO'] === 'ABIERTA' ? tag('Abierta', 'abierta') : tag('Cerrada', 'discreto') ?></td>
         </tr>
     <?php endforeach; ?>
     <?php if (!$historial): ?><tr><td colspan="10">Todavía no hay sesiones.</td></tr><?php endif; ?>

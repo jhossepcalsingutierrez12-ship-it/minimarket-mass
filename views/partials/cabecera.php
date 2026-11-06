@@ -28,10 +28,15 @@ $iconos = [
 ];
 // [grupo => [[acción, texto, ícono, ¿el rol lo ve?], ...]]
 $menu = [
-    'Tienda' => [
+    // El cajero ve primero su caja; los demás, el catálogo
+    'Tienda' => $u->puedeAbrirCaja() ? [
+        ['caja', 'Caja', 'caja', true],
+        ['venta', 'Nueva venta', 'carro', true],
+        ['ventas', 'Ventas', 'lista', $u->puedeVerVentas()],
+        ['listar', 'Catálogo', 'cat', true],
+    ] : [
         ['listar', 'Catálogo', 'cat', true],
         ['caja', 'Caja', 'caja', true],
-        ['venta', 'Nueva venta', 'carro', $u->puedeAbrirCaja()],
         ['ventas', 'Ventas', 'lista', $u->puedeVerVentas()],
     ],
     'Inventario' => [
@@ -51,6 +56,11 @@ $menu = [
         ['historial', 'Historial de actividades', 'reloj', $u->puedeVerHistorial()],
     ],
 ];
+// Cajero que todavía no abre su caja: el menú solo muestra «Abre tu caja»
+if (defined('CAJERO_SIN_CAJA') && CAJERO_SIN_CAJA) {
+    $menu = ['Tienda' => [['caja_inicio', 'Abre tu caja', 'caja', true]]];
+    $seccion = 'caja_inicio';
+}
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -74,7 +84,6 @@ $menu = [
 </header>
 <div class="panel">
     <nav class="lateral" aria-label="Menú">
-        <span class="tit">Menú</span>
         <?php foreach ($menu as $grupo => $opciones):
             $visibles = array_filter($opciones, fn($o) => $o[3]);
             if (!$visibles) continue; ?>

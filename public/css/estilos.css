@@ -294,3 +294,52 @@ input[type="password"]::-ms-reveal,input[type="password"]::-ms-clear{display:non
 /* Abre tu caja: las 3 cajas de la tienda elegida */
 .cajas-opciones .opcion-caja b{font-size:1rem}
 .opcion-caja:has(input:disabled) small:last-child{color:var(--bad);font-weight:700}
+
+/* ===== Pantalla Caja y detalles generales ===== */
+/* Misma sombra en tarjetas y tablas; filas con hover amarillo suave */
+.tabla{box-shadow:4px 4px 0 var(--k)}
+.tabla tbody tr:hover td{background:var(--y-soft)}
+/* Ancho máximo del contenido y menú lateral fijo al hacer scroll */
+.contenido{max-width:1248px}
+.lateral{position:sticky;top:0;align-self:flex-start;height:100vh;overflow-y:auto}
+.lateral .grupo:first-child{padding-top:2px}
+@media (max-width:760px){.lateral{position:static;height:auto;align-self:stretch}}
+/* Estados: color fuerte solo para ABIERTA; lo demás discreto */
+.tag.abierta{background:var(--k);color:var(--y)}
+.tag.discreto{background:#eeeeee;color:#6b6b6b}
+/* Tarjeta «Tu caja está abierta» */
+.caja-mia{margin-bottom:22px}
+.caja-mia .cab{margin-bottom:0}
+.caja-mia h3{margin:0;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.caja-efectivo{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:4px 16px;margin:14px 0 16px;padding:14px 18px;border:2px solid var(--k);border-radius:6px;background:var(--y-soft)}
+.caja-efectivo span{font-size:.8rem;font-weight:800;text-transform:uppercase;letter-spacing:.3px}
+.caja-efectivo b{font-family:"Archivo Black","Arial Black",sans-serif;font-size:2.1rem;line-height:1.1;font-variant-numeric:tabular-nums}
+.caja-efectivo small{flex-basis:100%;color:var(--muted);font-size:.8rem}
+.caja-datos{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px 22px;margin:0 0 14px}
+.caja-datos span{display:block;font-size:.8rem;color:var(--muted);text-transform:uppercase;font-weight:700;margin-bottom:2px}
+.caja-datos b{font-size:1.05rem;font-variant-numeric:tabular-nums}
+@media (max-width:760px){.caja-datos{grid-template-columns:repeat(2,minmax(0,1fr))}.caja-efectivo b{font-size:1.7rem}}
+@media (max-width:340px){.caja-datos{grid-template-columns:minmax(0,1fr)}}
+/* «Cajas de las 3 tiendas»: una tarjeta por tienda con sus 3 cajas */
+.tiendas-cajas{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:18px;margin-bottom:24px}
+.tienda-cajas h3{margin:0;font-size:1.05rem}
+.tc-cab{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:14px}
+.tc-dir{margin:3px 0 0;color:var(--muted);font-size:.82rem;line-height:1.35}
+.tc-cupo{flex:none;text-align:right}
+.tc-num{font-size:.85rem;color:var(--muted)}
+.tc-num b{font-family:"Archivo Black","Arial Black",sans-serif;font-size:1.45rem;color:var(--k)}
+.tc-label{display:block;font-size:.66rem;font-weight:800;text-transform:uppercase;color:var(--muted);letter-spacing:.4px}
+.tc-cupo.llena .tc-label{color:var(--k)}
+.tc-barra{display:flex;justify-content:flex-end;gap:4px;margin-top:5px}
+.tc-barra i{width:20px;height:8px;border:1.5px solid var(--k);border-radius:2px;background:#fff}
+.tc-barra i.on{background:var(--k)}
+.tc-chips{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.chip-caja{display:flex;flex-direction:column;gap:2px;min-width:0;padding:9px 10px;border:1.5px solid var(--line);border-radius:6px;background:#fafafa}
+.cc-num{font-size:.8rem;font-weight:800;text-transform:uppercase}
+.cc-estado{font-size:.68rem;font-weight:800;text-transform:uppercase;color:#8f8f8f;letter-spacing:.3px}
+.cc-quien{font-size:.78rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chip-caja.abierta{border:2px solid var(--k);background:var(--y)}
+.chip-caja.abierta .cc-estado{color:var(--k)}
+.chip-caja.mia{box-shadow:3px 3px 0 var(--k)}
+.chip-caja.fuera{opacity:.55}
+.chip-caja.fuera .cc-num{text-decoration:line-through}
