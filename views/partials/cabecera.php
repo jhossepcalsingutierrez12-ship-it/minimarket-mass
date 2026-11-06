@@ -19,6 +19,11 @@ $iconos = [
     'pdf'    => '<path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="14 3 14 9 20 9"/>',
     'alerta' => '<path d="M12 3 2 21h20z"/><line x1="12" y1="10" x2="12" y2="14"/><line x1="12" y1="17.5" x2="12" y2="17.6"/>',
     'tienda' => '<path d="M3 9l2-5h14l2 5"/><path d="M4 9v11h16V9"/><path d="M9 20v-6h6v6"/>',
+    'campana'=> '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>',
+    'camion' => '<rect x="1" y="6" width="14" height="11"/><path d="M15 10h4l3 3v4h-7z"/><circle cx="6" cy="19" r="2"/><circle cx="18" cy="19" r="2"/>',
+    'bolsa'  => '<path d="M5 8h14l-1 13H6z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/>',
+    'cierre' => '<rect x="3" y="7" width="18" height="13" rx="1"/><path d="M7 7V4h10v3"/><path d="M9 14l2 2 4-4"/>',
+    'reloj'  => '<circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/>',
     'chart'  => '<line x1="4" y1="20" x2="20" y2="20"/><rect x="6" y="11" width="3" height="7"/><rect x="11" y="6" width="3" height="12"/><rect x="16" y="13" width="3" height="5"/>',
 ];
 // [grupo => [[acción, texto, ícono, ¿el rol lo ve?], ...]]
@@ -30,11 +35,14 @@ $menu = [
         ['ventas', 'Ventas', 'lista', $u->puedeVerVentas()],
     ],
     'Inventario' => [
+        ['alertas', 'Alertas de inventario', 'campana', $u->puedeVerAlertas()],
         ['lotes', 'Lotes y vencimientos', 'cal', $u->puedeVerLotes()],
         ['cuadre', 'Cuadre de stock', 'cuadre', $u->puedeVerCuadreStock()],
         ['mermas', 'Mermas', 'merma', true],
         ['agregar', 'Agregar producto', 'mas', $u->puedeAdministrarProductos()],
         ['pdf', 'Catálogo en PDF', 'pdf', $u->puedeAdministrarProductos()],
+        ['proveedores', 'Proveedores', 'camion', $u->puedeGestionarProveedores()],
+        ['compras', 'Compras', 'bolsa', $u->puedeGestionarProveedores()],
     ],
     'Seguridad' => [
         ['incidentes', 'Incidentes', 'alerta', true],
@@ -42,6 +50,8 @@ $menu = [
     'Administración' => [
         ['tiendas', 'Tiendas y personal', 'tienda', $u->puedeVerPersonal()],
         ['reportes', 'Reportes', 'chart', $u->puedeVerReportes()],
+        ['cierres', 'Cierres de caja', 'cierre', $u->puedeRevisarCierres()],
+        ['historial', 'Historial de actividades', 'reloj', $u->puedeVerHistorial()],
     ],
 ];
 ?>

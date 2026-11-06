@@ -20,6 +20,10 @@ $porReponer = count(array_filter($productos, fn(Producto $p): bool => $p->estado
     <?php endif; ?>
 </div>
 <?= aviso() ?>
+<?php if ($u->puedeVerAlertas() && $porReponer > 0): ?>
+    <div class="msg info aviso-alertas"><span>⚠ Hay <b><?= $porReponer ?></b> producto<?= $porReponer === 1 ? '' : 's' ?> agotado<?= $porReponer === 1 ? '' : 's' ?> o con poco stock.</span>
+        <a class="btn sm" href="?accion=alertas">Ver alertas de inventario</a></div>
+<?php endif; ?>
 
 <!-- Filtros: los activa public/js/app.js. Sin JavaScript se ven todos los productos. -->
 <div class="filtros solo-js" hidden>
@@ -48,9 +52,14 @@ $porReponer = count(array_filter($productos, fn(Producto $p): bool => $p->estado
             <h3><?= e($p->getNombre()) ?></h3>
             <div><span class="precio"><?= sol($p->getPrecioVenta()) ?></span> <span class="igv">IGV <?= sol($p->igv()) ?></span></div>
             <div class="etiquetas">
-                <span class="tag <?= e($p->estadoStock()) ?>"><?= e($p->estadoStock()) ?> · <?= $p->getStockActual() ?> und.</span>
+                <span class="tag <?= e($p->estadoStock()) ?>"><?= e($p->estadoStock()) ?></span>
                 <?php if ($p->esPerecible()): ?><span class="tag per">Perecible</span><?php endif; ?>
             </div>
+            <!-- Las unidades van aparte del estado: «Reponer» es lo que hay que hacer, no la cantidad -->
+            <p class="stock-linea <?= $p->getStockActual() === 0 ? 'sin' : '' ?>">
+                <?= $p->getStockActual() === 0 ? 'Sin unidades en stock' : 'Quedan <b>' . $p->getStockActual() . '</b> und.' ?>
+                <span>· mínimo <?= $p->getStockMinimo() ?></span>
+            </p>
             <div class="acciones">
                 <a class="btn ghost sm" href="?accion=ver&amp;sku=<?= urlencode($p->getCodigoSku()) ?>">Ver detalle</a>
                 <?php if ($admin): ?>

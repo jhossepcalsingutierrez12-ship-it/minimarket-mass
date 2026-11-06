@@ -7,11 +7,11 @@ date_default_timezone_set('America/Lima');
 require __DIR__ . '/../config/conexion.php';
 foreach (['Producto', 'ProductoRepository', 'UsuarioRepository', 'Repositorio', 'CajaRepository', 'VentaRepository',
           'LoteRepository', 'MermaRepository', 'IncidenteRepository', 'TiendaRepository', 'ReporteRepository',
-          'Correo', 'Captcha'] as $modelo) {
+          'ProveedorRepository', 'HistorialRepository', 'Correo', 'Captcha'] as $modelo) {
     require_once __DIR__ . '/../models/' . $modelo . '.php';
 }
 foreach (['Controlador', 'AuthController', 'ProductoController', 'CajaController', 'VentaController',
-          'InventarioController', 'TiendaController'] as $controlador) {
+          'InventarioController', 'TiendaController', 'AdminController'] as $controlador) {
     require_once __DIR__ . '/../controllers/' . $controlador . '.php';
 }
 require_once __DIR__ . '/../views/partials/ayudas.php';
@@ -69,17 +69,25 @@ if ($u === null) {
     exit;
 }
 
+// Historial de actividades: quién agregó, cambió precios, anuló, registró mermas...
+$historial = new HistorialRepository($pdo);
+Historial::usar($historial);
+
 $productos = new ProductoRepository($pdo);
 $lotes = new LoteRepository($pdo);
 $cajas = new CajaRepository($pdo);
 $tiendas = new TiendaRepository($pdo);
-$tiendaActual = $tiendas->tienda($u->getIdTienda()) ?? [];
+// La franja de arriba muestra la tienda donde el cajero tiene su caja abierta (o la suya)
+$cajaAbierta = $u->puedeAbrirCaja() ? $cajas->sesionAbiertaDe($u->getIdEmpleado()) : null;
+$tiendaActual = $tiendas->tienda($cajaAbierta ? (int) $cajaAbierta['ID_TIENDA'] : $u->getIdTienda()) ?? [];
 
 $catalogo   = new ProductoController($u, $tiendaActual, $productos, $lotes);
 $caja       = new CajaController($u, $tiendaActual, $cajas, $tiendas);
 $ventas     = new VentaController($u, $tiendaActual, new VentaRepository($pdo), $cajas, $productos);
 $inventario = new InventarioController($u, $tiendaActual, $lotes, new MermaRepository($pdo), $productos, $tiendas);
-$tienda     = new TiendaController($u, $tiendaActual, $tiendas, new IncidenteRepository($pdo), new ReporteRepository($pdo), $productos, $cajas);
+$reportes   = new ReporteRepository($pdo);
+$tienda     = new TiendaController($u, $tiendaActual, $tiendas, new IncidenteRepository($pdo), $reportes, $productos, $cajas);
+$admin      = new AdminController($u, $tiendaActual, $reportes, $cajas, new ProveedorRepository($pdo), $historial, $productos, $tiendas);
 
 // [acción => [qué hacer con GET, qué hacer con POST]]
 $rutas = [
@@ -97,6 +105,7 @@ $rutas = [
 
     'caja'         => [fn() => $caja->index(), null],
     'caja_abrir'   => [null, fn() => $caja->abrir()],
+    'caja_inicio'  => [fn() => $caja->inicio(), null],
     'caja_cerrar'  => [null, fn() => $caja->cerrar()],
 
     'venta'        => [fn() => $ventas->nueva(), fn() => $ventas->actualizar()],
@@ -116,6 +125,14 @@ $rutas = [
     'tiendas'      => [fn() => $tienda->tiendas(), null],
     'cuadre'       => [fn() => $tienda->cuadreStock(), null],
     'reportes'     => [fn() => $tienda->reportes(), null],
+
+    // Funciones del Administrador
+    'alertas'      => [fn() => $admin->alertas(), null],
+    'cierres'      => [fn() => $admin->cierres(), null],
+    'proveedores'  => [fn() => $admin->proveedores(), fn() => $admin->crearProveedor()],
+    'estado_proveedor' => [null, fn() => $admin->estadoProveedor()],
+    'compras'      => [fn() => $admin->compras(), fn() => $admin->registrarCompra()],
+    'historial'    => [fn() => $admin->historial(), null],
 ];
 
 $ruta = $rutas[$accion][$esPost ? 1 : 0] ?? null;

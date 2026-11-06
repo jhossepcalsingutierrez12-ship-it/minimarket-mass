@@ -232,3 +232,30 @@ if (radiosTienda.length && document.getElementById('caja')) {
   radiosTienda.forEach(r => r.addEventListener('change', filtrar));
   filtrar();
 }
+
+// 16. Compras: importe de cada fila y total de la compra
+const fCompra = document.getElementById('fCompra');
+if (fCompra) {
+  const calcular = () => {
+    let total = 0;
+    fCompra.querySelectorAll('.lineas-compra tbody tr').forEach(tr => {
+      const c = parseFloat(tr.querySelector('[name^="cantidad"]').value.replace(',', '.'));
+      const u = parseFloat(tr.querySelector('[name^="costo"]').value.replace(',', '.'));
+      const ok = c > 0 && u >= 0;
+      const imp = ok ? Math.round(c * u * 100) / 100 : 0;
+      total += imp;
+      tr.querySelector('.importe').textContent = ok ? 'S/ ' + imp.toFixed(2) : '—';
+    });
+    document.getElementById('totalCompra').textContent = 'S/ ' + total.toFixed(2);
+  };
+  fCompra.addEventListener('input', calcular);
+  calcular();
+}
+
+// 17. Reportes: las fechas "desde / hasta" solo se muestran al elegir "Elegir fechas"
+const periodo = document.getElementById('periodo');
+if (periodo) {
+  const verRango = () => document.querySelectorAll('.filtros-reporte .rango').forEach(l => { l.hidden = periodo.value !== 'rango'; });
+  periodo.addEventListener('change', verRango);
+  verRango();
+}

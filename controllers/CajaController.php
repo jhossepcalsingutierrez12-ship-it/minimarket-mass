@@ -21,6 +21,7 @@ class CajaController extends Controlador
             'efectivoMia' => $mia ? $this->repo->efectivoSistema((int) $mia['ID_SESION']) : 0.0,
             'libres' => $this->repo->cajasLibres(),
             'cajas' => $this->repo->cajasConEstado(),
+            'abiertasTienda' => $this->repo->abiertasPorTienda(),
             'tiendas' => $this->tiendas->tiendas(),
             'turnos' => $this->repo->turnos(),
             'abiertas' => $this->usuario->puedeCerrarCaja() || $this->usuario->puedeVerDineroCajas() ? $this->repo->sesiones($this->usuario, true) : [],
@@ -49,9 +50,14 @@ class CajaController extends Controlador
                 $sugerido = (string) $id;
             }
         }
+        // Tienda marcada al inicio: la suya si tiene cajas para abrir; si no, la primera que tenga
+        $libres = $this->repo->cajasLibres();
+        $conCajas = array_unique(array_map(fn($c) => (string) $c['ID_TIENDA'], $libres));
+        $tienda = in_array((string) $this->usuario->getIdTienda(), $conCajas, true) ? (string) $this->usuario->getIdTienda() : (string) (reset($conCajas) ?: '');
         $this->vista('caja/inicio', [
-            'tiendas' => $this->tiendas->tiendas(), 'libres' => $this->repo->cajasLibres(), 'turnos' => $turnos,
-            'errores' => $errores, 'form' => $form + ['tienda' => (string) $this->usuario->getIdTienda(), 'turno' => $sugerido ?: (string) array_key_first($turnos)],
+            'tiendas' => $this->tiendas->tiendas(), 'libres' => $libres, 'turnos' => $turnos,
+            'abiertasTienda' => $this->repo->abiertasPorTienda(),
+            'errores' => $errores, 'form' => $form + ['tienda' => $tienda, 'turno' => $sugerido ?: (string) array_key_first($turnos)],
         ]);
     }
 
@@ -81,6 +87,7 @@ class CajaController extends Controlador
         }
         try {
             $id = $this->repo->abrir((int) $form['caja'], $this->usuario, (int) $form['turno'], $monto);
+            Historial::anotar($this->usuario, 'ABRIR_CAJA', "Abrió {$libre['TIENDA']} · Caja N° {$libre['NUMERO_CAJA']} con " . sol($monto) . " (sesión $id)");
             $this->aviso('ok', "Caja abierta en {$libre['TIENDA']} · Caja N° {$libre['NUMERO_CAJA']} con " . sol($monto) . " (sesión $id). Ya puedes vender.");
         } catch (DomainException $e) {
             $this->aviso('err', $e->getMessage());
@@ -101,6 +108,7 @@ class CajaController extends Controlador
         try {
             [$sistema, $contado, $dif] = $this->repo->cerrar($id, $contado, $this->usuario);
             $nota = $dif < 0 ? ' (faltante)' : ($dif > 0 ? ' (sobrante)' : '');
+            Historial::anotar($this->usuario, 'CERRAR_CAJA', "Cerró la sesión $id · sistema " . sol($sistema) . ' · contado ' . sol($contado) . ' · diferencia ' . sol($dif) . $nota);
             $this->aviso($dif < 0 ? 'err' : 'ok', "Sesión $id cerrada. Sistema " . sol($sistema) . ' · contado ' . sol($contado) . ' · diferencia ' . sol($dif) . $nota . '.');
         } catch (DomainException $e) {
             $this->aviso('err', $e->getMessage());

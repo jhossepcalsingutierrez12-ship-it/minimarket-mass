@@ -8,6 +8,9 @@ require_once __DIR__ . '/Repositorio.php';
  */
 class CajaRepository extends Repositorio
 {
+    // Regla de la tienda: de sus 3 cajas, como máximo 2 pueden estar abiertas a la vez
+    public const MAX_ABIERTAS_POR_TIENDA = 2;
+
     private const SELECT_SESION = '
         SELECT s.*, c.NUMERO_CAJA, c.ID_TIENDA, t.NOMBRE AS TIENDA, t.DIRECCION, t.DISTRITO, tu.NOMBRE AS TURNO,
                e.NOMBRES AS CAJERO_NOMBRES, e.APELLIDOS AS CAJERO_APELLIDOS
@@ -59,10 +62,22 @@ class CajaRepository extends Repositorio
             ORDER BY c.ID_TIENDA, c.NUMERO_CAJA")->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    // Cajas activas (de cualquiera de las 3 tiendas) que no tienen una sesión abierta
+    /** @return array<int, int> [ID_TIENDA => cajas abiertas ahora] */
+    public function abiertasPorTienda(): array
+    {
+        $r = [];
+        foreach ($this->cajasConEstado() as $c) {
+            $r[(int) $c['ID_TIENDA']] = ($r[(int) $c['ID_TIENDA']] ?? 0) + ($c['ID_SESION'] !== null ? 1 : 0);
+        }
+        return $r;
+    }
+
+    // Cajas que se pueden abrir: activas, sin sesión y de una tienda que aún no tiene 2 abiertas
     public function cajasLibres(): array
     {
-        return array_values(array_filter($this->cajasConEstado(), fn($c) => $c['ESTADO_CAJA'] === 'A' && $c['ID_SESION'] === null));
+        $abiertas = $this->abiertasPorTienda();
+        return array_values(array_filter($this->cajasConEstado(), fn($c) => $c['ESTADO_CAJA'] === 'A' && $c['ID_SESION'] === null
+            && ($abiertas[(int) $c['ID_TIENDA']] ?? 0) < self::MAX_ABIERTAS_POR_TIENDA));
     }
 
     /**
@@ -85,7 +100,8 @@ class CajaRepository extends Repositorio
         return $this->enTransaccion(function () use ($idCaja, $cajero, $idTurno, $monto): int {
             $libre = array_filter($this->cajasLibres(), fn($c) => (int) $c['ID_CAJA'] === $idCaja);
             if (!$libre) {
-                throw new DomainException('Esa caja ya está abierta o está fuera de servicio.');
+                throw new DomainException('No se puede abrir esa caja: ya está abierta, está fuera de servicio o su tienda ya tiene '
+                    . self::MAX_ABIERTAS_POR_TIENDA . ' cajas abiertas (máximo).');
             }
             if ($this->sesionAbiertaDe($cajero->getIdEmpleado()) !== null) {
                 throw new DomainException('Ya tienes una caja abierta.');
@@ -150,6 +166,38 @@ class CajaRepository extends Repositorio
             ]);
             return [$sistema, round($contado, 2), $dif];
         });
+    }
+
+    /**
+     * Cierres de caja para que el Administrador los revise (no cierra nada):
+     * cuánto debía haber (sistema), cuánto se contó, la diferencia y quién cerró.
+     * Filtros opcionales: tienda, desde, hasta (Y-m-d) y solo los que no cuadraron.
+     */
+    public function cierres(array $f = []): array
+    {
+        $donde = ["s.ESTADO = 'CERRADA'"];
+        $p = [];
+        if (!empty($f['tienda'])) {
+            $donde[] = 'c.ID_TIENDA = :tienda';
+            $p[':tienda'] = (int) $f['tienda'];
+        }
+        if (!empty($f['desde'])) {
+            $donde[] = 's.FECHA_CIERRE >= :desde';
+            $p[':desde'] = $f['desde'] . ' 00:00:00';
+        }
+        if (!empty($f['hasta'])) {
+            $donde[] = 's.FECHA_CIERRE <= :hasta';
+            $p[':hasta'] = $f['hasta'] . ' 23:59:59';
+        }
+        if (!empty($f['diferencia'])) {
+            $donde[] = 's.DIFERENCIA <> 0';
+        }
+        $stmt = $this->pdo->prepare(str_replace('FROM SESION_CAJA s', ', sp.NOMBRES AS CERRO_NOMBRES, sp.APELLIDOS AS CERRO_APELLIDOS
+        FROM SESION_CAJA s', self::SELECT_SESION) . '
+            LEFT JOIN EMPLEADO sp ON sp.ID_EMPLEADO = s.ID_SUPERVISOR
+            WHERE ' . implode(' AND ', $donde) . ' ORDER BY s.FECHA_CIERRE DESC, s.ID_SESION DESC');
+        $stmt->execute($p);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     /** @return array{0: string, 1: array} condición WHERE según lo que el rol puede ver */
