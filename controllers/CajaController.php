@@ -7,7 +7,8 @@ declare(strict_types=1);
  */
 class CajaController extends Controlador
 {
-    public function __construct(Usuario $usuario, array $tienda, private CajaRepository $repo, private TiendaRepository $tiendas)
+    public function __construct(Usuario $usuario, array $tienda, private CajaRepository $repo, private TiendaRepository $tiendas,
+                                private ?NotificacionRepository $notificaciones = null)
     {
         parent::__construct($usuario, $tienda);
     }
@@ -109,7 +110,15 @@ class CajaController extends Controlador
             [$sistema, $contado, $dif] = $this->repo->cerrar($id, $contado, $this->usuario);
             $nota = $dif < 0 ? ' (faltante)' : ($dif > 0 ? ' (sobrante)' : '');
             Historial::anotar($this->usuario, 'CERRAR_CAJA', "Cerró la sesión $id · sistema " . sol($sistema) . ' · contado ' . sol($contado) . ' · diferencia ' . sol($dif) . $nota);
-            $this->aviso($dif < 0 ? 'err' : 'ok', "Sesión $id cerrada. Sistema " . sol($sistema) . ' · contado ' . sol($contado) . ' · diferencia ' . sol($dif) . $nota . '.');
+            if ($dif < 0) {
+                // Faltó dinero: queda en el historial y le llega al Administrador (campana del sistema y correo)
+                $s = $this->repo->sesion($id);
+                Historial::anotar($this->usuario, 'FALTANTE_CAJA', 'Faltan ' . sol(-$dif) . " en {$s['TIENDA']} · Caja N° {$s['NUMERO_CAJA']} (sesión $id · cajero "
+                    . nombreCorto($s['CAJERO_NOMBRES'], $s['CAJERO_APELLIDOS']) . ')');
+                $this->notificaciones?->avisarPorCorreo($id);
+            }
+            $this->aviso($dif < 0 ? 'err' : 'ok', "Sesión $id cerrada. Sistema " . sol($sistema) . ' · contado ' . sol($contado) . ' · diferencia ' . sol($dif) . $nota . '.'
+                . ($dif < 0 ? ' Se avisó al Administrador.' : ''));
         } catch (DomainException $e) {
             $this->aviso('err', $e->getMessage());
         }

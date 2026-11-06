@@ -6,13 +6,71 @@
 const $ = sel => document.querySelector(sel);
 const $$ = sel => document.querySelectorAll(sel);
 
-// 1. Catálogo: buscar y filtrar sin recargar la página
+// 0. En todas las páginas: avisos flotantes (toast) que se van solos y menú hamburguesa en el celular
+function activarToast(toast, espera) {
+  const cerrar = () => { toast.classList.add('saliendo'); setTimeout(() => toast.closest('.toast-zona')?.remove(), 200); };
+  let tiempo = setTimeout(cerrar, espera || (toast.classList.contains('err') ? 8000 : 5000));
+  toast.addEventListener('mouseenter', () => clearTimeout(tiempo));
+  toast.addEventListener('mouseleave', () => { tiempo = setTimeout(cerrar, 2500); });
+  toast.querySelector('.toast-x')?.addEventListener('click', cerrar);
+}
+$$('.toast').forEach(t => activarToast(t));
+
+// 0b. Administrador: cada 30 s pregunta si cerraron una caja con faltante de dinero.
+// Si hay uno nuevo, la campana suma y sale un aviso flotante (sin recargar la página).
+if (document.body.dataset.faltantes !== undefined) {
+  const campana = document.getElementById('campanaNoti');
+  const numero = document.getElementById('notiN');
+  let conocidos = parseInt(document.body.dataset.faltantes, 10) || 0;
+  const revisar = async () => {
+    try {
+      const r = await fetch('?accion=faltantes_n', { headers: { Accept: 'application/json' }, cache: 'no-store' });
+      if (!r.ok) return;
+      const d = await r.json();
+      if (d.n > conocidos && d.texto) {
+        const zona = document.createElement('div');
+        zona.className = 'toast-zona';
+        zona.innerHTML = '<div class="toast err toast-faltante" role="alert">' + campana.querySelector('svg').outerHTML
+          + '<span><b>¡Faltó dinero al cerrar una caja!</b><br></span>'
+          + '<a class="btn sm" href="?accion=faltantes">Revisar</a>'
+          + '<button type="button" class="toast-x" aria-label="Cerrar aviso"><svg class="ico" aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg></button></div>';
+        zona.querySelector('span').append(d.texto);   // como texto, nunca como HTML
+        document.body.appendChild(zona);
+        activarToast(zona.querySelector('.toast'), 15000);
+      }
+      if (d.n !== conocidos) {
+        conocidos = d.n;
+        numero.textContent = d.n;
+        numero.hidden = d.n === 0;
+        campana.classList.toggle('hay', d.n > 0);
+        campana.setAttribute('aria-label', d.n ? d.n + ' faltante(s) de caja sin revisar' : 'Faltantes de caja: nada nuevo');
+      }
+    } catch (e) { /* sin conexión: se vuelve a intentar en 30 s */ }
+  };
+  setInterval(revisar, 30000);
+}
+const btnMenu = document.getElementById('btnMenu');
+if (btnMenu) {
+  const menu = document.getElementById('menuLateral');
+  const poner = abierto => {
+    menu.classList.toggle('abierto', abierto);
+    btnMenu.setAttribute('aria-expanded', String(abierto));
+    btnMenu.setAttribute('aria-label', abierto ? 'Cerrar menú' : 'Abrir menú');
+  };
+  btnMenu.addEventListener('click', () => poner(!menu.classList.contains('abierto')));
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && menu.classList.contains('abierto')) { poner(false); btnMenu.focus(); } });
+}
+
+// 1. Catálogo: buscar, filtrar por estado y categoría, y ordenar sin recargar la página
 const grid = document.getElementById('grid');
 if (grid) {
   const buscar = document.getElementById('buscar');
   const estado = document.getElementById('filtroEstado');
+  const ordenar = document.getElementById('ordenar');
   const chips = $$('#chips .chip');
   const vacio = document.getElementById('vacio');
+  const resultado = document.getElementById('resultado');
+  const tarjetas = [...grid.querySelectorAll('.prod')];
   let categoria = '';
 
   // Los filtros solo sirven con JavaScript, por eso empiezan ocultos
@@ -21,7 +79,7 @@ if (grid) {
   function filtrar() {
     const q = buscar.value.trim().toLowerCase();
     let visibles = 0;
-    grid.querySelectorAll('.prod').forEach(t => {
+    tarjetas.forEach(t => {
       const ok = (!categoria || t.dataset.cat === categoria)
               && (!estado.value || t.dataset.estado === estado.value)
               && (!q || t.dataset.nombre.includes(q) || t.dataset.sku.includes(q));
@@ -29,15 +87,34 @@ if (grid) {
       if (ok) visibles++;
     });
     vacio.hidden = visibles > 0;
+    const filtrado = categoria || estado.value || q;
+    resultado.hidden = !filtrado;
+    resultado.textContent = filtrado ? `Mostrando ${visibles} de ${tarjetas.length} productos.` : '';
+  }
+
+  function ordenarTarjetas() {
+    const [campo, sentido] = ordenar.value.split('-');
+    const signo = sentido === 'desc' ? -1 : 1;
+    tarjetas.slice().sort((a, b) => campo === 'nombre'
+      ? a.dataset.nombre.localeCompare(b.dataset.nombre, 'es')
+      : signo * (parseFloat(a.dataset[campo]) - parseFloat(b.dataset[campo])) || a.dataset.nombre.localeCompare(b.dataset.nombre, 'es'))
+      .forEach(t => grid.appendChild(t));
   }
 
   chips.forEach(chip => chip.addEventListener('click', () => {
     categoria = chip.dataset.cat;
-    chips.forEach(c => c.classList.toggle('active', c === chip));
+    chips.forEach(c => { c.classList.toggle('active', c === chip); c.setAttribute('aria-pressed', String(c === chip)); });
     filtrar();
   }));
   buscar.addEventListener('input', filtrar);
   estado.addEventListener('change', filtrar);
+  ordenar.addEventListener('change', ordenarTarjetas);
+  document.getElementById('limpiarFiltros')?.addEventListener('click', () => {
+    buscar.value = ''; estado.value = ''; categoria = '';
+    chips.forEach((c, i) => { c.classList.toggle('active', i === 0); c.setAttribute('aria-pressed', String(i === 0)); });
+    filtrar(); buscar.focus();
+  });
+  ordenarTarjetas();
 }
 
 // 2. Login: botón para ver u ocultar la contraseña

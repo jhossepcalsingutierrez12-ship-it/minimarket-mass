@@ -4,7 +4,7 @@ $titulo = 'Editar producto';
 $seccion = 'listar';
 require __DIR__ . '/../partials/cabecera.php';
 ?>
-<a class="volver" href="?accion=listar">← Volver al catálogo</a>
+<?= migas([['Catálogo', '?accion=listar'], [$producto->getNombre(), '?accion=ver&sku=' . urlencode($producto->getCodigoSku())], ['Editar', null]]) ?>
 <h1>Editar producto</h1>
 <p class="sub">El formulario aparece con los datos actuales; cambia solo lo necesario.</p>
 

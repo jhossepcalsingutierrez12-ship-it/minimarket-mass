@@ -4,7 +4,7 @@ $titulo = 'Agregar producto';
 $seccion = 'agregar';
 require __DIR__ . '/../partials/cabecera.php';
 ?>
-<a class="volver" href="?accion=listar">← Volver al catálogo</a>
+<?= migas([['Catálogo', '?accion=listar'], ['Agregar producto', null]]) ?>
 <h1>Agregar producto</h1>
 <p class="sub">Se guarda en PRODUCTO y en INVENTARIO con su stock inicial.</p>
 

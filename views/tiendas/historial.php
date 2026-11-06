@@ -5,7 +5,7 @@ $seccion = 'historial';
 require __DIR__ . '/../partials/cabecera.php';
 
 $clase = ['ANULAR_VENTA' => 'bad', 'REGISTRAR_MERMA' => 'warn', 'CAMBIAR_PRECIO' => 'warn', 'BAJA_PRODUCTO' => 'bad',
-          'AGREGAR_PRODUCTO' => 'ok', 'REGISTRAR_COMPRA' => 'ok', 'RECIBIR_LOTE' => 'ok'];
+          'AGREGAR_PRODUCTO' => 'ok', 'REGISTRAR_COMPRA' => 'ok', 'RECIBIR_LOTE' => 'ok', 'FALTANTE_CAJA' => 'bad'];
 ?>
 <h1>Historial de actividades</h1>
 <p class="sub">Quién hizo qué y cuándo: agregar productos, cambiar precios, anular ventas, registrar mermas, recibir lotes, abrir y cerrar cajas.

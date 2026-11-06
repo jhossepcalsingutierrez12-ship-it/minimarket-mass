@@ -21,6 +21,8 @@ class HistorialRepository extends Repositorio
         'RECIBIR_LOTE'         => 'Recibió un lote',
         'ABRIR_CAJA'           => 'Abrió una caja',
         'CERRAR_CAJA'          => 'Cerró una caja',
+        'FALTANTE_CAJA'        => 'Faltó dinero en una caja',
+        'REVISAR_FALTANTES'    => 'Revisó los faltantes de caja',
     ];
 
     public function registrar(int $idEmpleado, string $accion, string $detalle): void
