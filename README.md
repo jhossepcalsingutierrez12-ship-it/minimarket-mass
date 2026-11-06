@@ -28,7 +28,9 @@ Requisitos: Laragon con MySQL en el puerto **3307** y PHP 8.
    mysql -u root -P 3307 minimarket_mass -e "source database/tiendas.sql"
    mysql -u root -P 3307 minimarket_mass -e "source database/cajas.sql"
    mysql -u root -P 3307 minimarket_mass -e "source database/cajeros.sql"
-   mysql -u root -P 3307 minimarket_mass -e "source database/admin.sql"
+   mysql -u root -P 3307 --default-character-set=utf8mb4 minimarket_mass -e "source database/admin.sql"
+   mysql -u root -P 3307 --default-character-set=utf8mb4 minimarket_mass -e "source database/productos_nuevos.sql"
+   mysql -u root -P 3307 --default-character-set=utf8mb4 minimarket_mass -e "source database/ejemplos_tiendas.sql"
    ```
 
    - `schema.sql` crea la base `minimarket_mass` y sus 20 tablas.
@@ -39,6 +41,8 @@ Requisitos: Laragon con MySQL en el puerto **3307** y PHP 8.
    - `tiendas.sql` deja las 3 tiendas: Cayma, Cerro Colorado y Yanahuara.
    - `cajas.sql` deja 3 cajas activas en cada tienda.
    - `cajeros.sql` agrega un segundo cajero (`jccama`) para probar 2 cajas abiertas.
+   - `productos_nuevos.sql` agrega las marcas y subcategorías de los 9 productos nuevos, baja el precio del arroz y deja una compra de ejemplo.
+   - `ejemplos_tiendas.sql` carga ventas, cierres de caja, una merma y actividades de ejemplo en las 3 tiendas (2 al 5 de noviembre).
    - `admin.sql` crea PROVEEDOR, COMPRA, DETALLE_COMPRA e HISTORIAL (proveedores, compras de mercadería e historial de actividades).
    - `cuadre.sql` agrega a LOTE la fecha en que llegó la mercadería (para el cuadre de stock del día).
      **Antes de correrlo cambia los 3 correos** que trae por correos reales.
