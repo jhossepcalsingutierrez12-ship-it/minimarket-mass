@@ -9,7 +9,7 @@ require_once __DIR__ . '/Supervisor.php';
  * - ve si cuadra el stock del día;
  * - ve cuánto dinero tiene cada caja, pero no la cuenta ni la cierra (eso es del supervisor).
  * Además administra productos, ve el personal y las 3 tiendas, revisa las alertas de inventario,
- * registra proveedores y compras y ve el historial de actividades.
+ * y ve el historial de actividades.
  */
 class Administrador extends Supervisor
 {
@@ -32,6 +32,5 @@ class Administrador extends Supervisor
     public function puedeVerReportes(): bool { return true; }
     public function puedeVerTodasLasTiendas(): bool { return true; }
     public function puedeVerAlertas(): bool { return true; }
-    public function puedeGestionarProveedores(): bool { return true; }
     public function puedeVerHistorial(): bool { return true; }
 }

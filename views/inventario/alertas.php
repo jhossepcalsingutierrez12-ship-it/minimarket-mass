@@ -52,7 +52,7 @@ $tablaReponer = function (array $filas): string {
 
 <?php if ($a['agotados'] || $a['poco']): ?>
     <div class="msg info">Cantidad recomendada para reponer = meta − stock actual. La meta es lo mayor entre <b>2 × el stock mínimo</b> y lo que se vende en
-        <b>14 días</b> (promedio de ventas de los últimos 30 días). Regístralo en <a href="?accion=compras">Compras</a> cuando llegue la mercadería.</div>
+        <b>14 días</b> (promedio de ventas de los últimos 30 días). Regístralo en <a href="?accion=lotes">Lotes y vencimientos</a> cuando llegue la mercadería.</div>
 <?php endif; ?>
 
 <?php if ($a['vencidos'] || $a['porVencer']): ?>

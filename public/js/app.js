@@ -216,40 +216,22 @@ if (tablaCuadre) {
   tablaCuadre.addEventListener('input', revisar);
 }
 
-// 15. Abrir caja al entrar: al elegir la tienda, solo quedan sus cajas
-const radiosTienda = document.querySelectorAll('input[name="tienda"]');
-if (radiosTienda.length && document.getElementById('caja')) {
-  const caja = document.getElementById('caja');
+// 15. Abrir caja al entrar: al elegir la tienda solo se ven sus 3 cajas (y se marca la primera libre)
+const radiosTienda = document.querySelectorAll('#fInicioCaja input[name="tienda"]');
+if (radiosTienda.length) {
   const filtrar = () => {
     const t = [...radiosTienda].find(r => r.checked)?.value;
-    caja.querySelectorAll('optgroup').forEach(g => { g.hidden = !!t && g.dataset.tienda !== t; g.disabled = g.hidden; });
-    const actual = caja.selectedOptions[0];
-    if (!actual || actual.parentElement.disabled) {
-      const primera = caja.querySelector(`optgroup[data-tienda="${t}"] option`);
-      if (primera) primera.selected = true;
+    const cards = document.querySelectorAll('#fInicioCaja .opcion-caja');
+    cards.forEach(c => { c.hidden = !!t && c.dataset.tienda !== t; });
+    const marcada = document.querySelector('#fInicioCaja input[name="caja"]:checked');
+    if (!marcada || marcada.closest('.opcion-caja').hidden) {
+      if (marcada) marcada.checked = false;
+      const libre = [...cards].find(c => !c.hidden && !c.querySelector('input').disabled);
+      if (libre) libre.querySelector('input').checked = true;
     }
   };
   radiosTienda.forEach(r => r.addEventListener('change', filtrar));
   filtrar();
-}
-
-// 16. Compras: importe de cada fila y total de la compra
-const fCompra = document.getElementById('fCompra');
-if (fCompra) {
-  const calcular = () => {
-    let total = 0;
-    fCompra.querySelectorAll('.lineas-compra tbody tr').forEach(tr => {
-      const c = parseFloat(tr.querySelector('[name^="cantidad"]').value.replace(',', '.'));
-      const u = parseFloat(tr.querySelector('[name^="costo"]').value.replace(',', '.'));
-      const ok = c > 0 && u >= 0;
-      const imp = ok ? Math.round(c * u * 100) / 100 : 0;
-      total += imp;
-      tr.querySelector('.importe').textContent = ok ? 'S/ ' + imp.toFixed(2) : '—';
-    });
-    document.getElementById('totalCompra').textContent = 'S/ ' + total.toFixed(2);
-  };
-  fCompra.addEventListener('input', calcular);
-  calcular();
 }
 
 // 18. Agregar producto: al elegir un producto nuevo de la lista, el formulario se llena solo
@@ -265,22 +247,4 @@ if (sugerido) {
     const prev = document.getElementById('fotoPrev');
     if (prev) prev.innerHTML = o.dataset.foto ? `<img src="${o.dataset.foto}" alt=""><span>Foto lista del producto nuevo.</span>` : '<span>Opcional. Sin foto se muestra el ícono de la categoría.</span>';
   });
-}
-
-// 19. Compras: al elegir el proveedor solo salen los productos de su categoría (Abarrotes → ABA, etc.)
-const provCompra = document.getElementById('proveedor');
-if (provCompra && document.querySelector('.lineas-compra')) {
-  const nombres = {ABA: 'Abarrotes', LAC: 'Lácteos', BEB: 'Bebidas', LIM: 'Limpieza'};
-  const filtrarProductos = () => {
-    const cat = provCompra.selectedOptions[0]?.dataset.cat || '';
-    document.querySelectorAll('.lineas-compra select[name^="producto"]').forEach(sel => {
-      sel.querySelectorAll('option[data-cat]').forEach(o => { o.hidden = o.disabled = !!cat && o.dataset.cat !== cat; });
-      if (sel.selectedOptions[0]?.disabled) sel.value = '';
-    });
-    const hint = document.getElementById('filtroProv');
-    if (hint) hint.textContent = cat ? `Solo se muestran los productos de ${nombres[cat]} (${cat}).` : (provCompra.value ? 'Este proveedor vende de todo: salen todos los productos.' : '');
-    fCompra && fCompra.dispatchEvent(new Event('input'));
-  };
-  provCompra.addEventListener('change', filtrarProductos);
-  filtrarProductos();
 }

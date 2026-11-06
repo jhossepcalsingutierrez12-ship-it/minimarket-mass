@@ -67,7 +67,6 @@ class Usuario
 
     // Funciones de control del administrador
     public function puedeVerAlertas(): bool { return false; }          // alertas de inventario
-    public function puedeGestionarProveedores(): bool { return false; } // proveedores y compras
     public function puedeVerHistorial(): bool { return false; }        // historial de actividades
 
     // CK_MER_6: quien autoriza una merma no puede ser quien la registró

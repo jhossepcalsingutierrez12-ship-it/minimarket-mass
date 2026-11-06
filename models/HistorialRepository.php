@@ -19,8 +19,6 @@ class HistorialRepository extends Repositorio
         'REGISTRAR_MERMA'      => 'Registró una merma',
         'AUTORIZAR_MERMA'      => 'Autorizó una merma',
         'RECIBIR_LOTE'         => 'Recibió un lote',
-        'REGISTRAR_PROVEEDOR'  => 'Registró un proveedor',
-        'REGISTRAR_COMPRA'     => 'Registró una compra',
         'ABRIR_CAJA'           => 'Abrió una caja',
         'CERRAR_CAJA'          => 'Cerró una caja',
     ];

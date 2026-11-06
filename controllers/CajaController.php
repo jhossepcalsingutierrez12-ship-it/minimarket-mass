@@ -55,7 +55,7 @@ class CajaController extends Controlador
         $conCajas = array_unique(array_map(fn($c) => (string) $c['ID_TIENDA'], $libres));
         $tienda = in_array((string) $this->usuario->getIdTienda(), $conCajas, true) ? (string) $this->usuario->getIdTienda() : (string) (reset($conCajas) ?: '');
         $this->vista('caja/inicio', [
-            'tiendas' => $this->tiendas->tiendas(), 'libres' => $libres, 'turnos' => $turnos,
+            'tiendas' => $this->tiendas->tiendas(), 'libres' => $libres, 'cajas' => $this->repo->cajasConEstado(), 'turnos' => $turnos,
             'abiertasTienda' => $this->repo->abiertasPorTienda(),
             'errores' => $errores, 'form' => $form + ['tienda' => $tienda, 'turno' => $sugerido ?: (string) array_key_first($turnos)],
         ]);

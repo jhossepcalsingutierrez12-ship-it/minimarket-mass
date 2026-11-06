@@ -115,7 +115,7 @@ usort($ganancias, fn($a, $b) => $b['GANANCIA'] <=> $a['GANANCIA']);
     <?php if (!$ganancias): ?><tr><td colspan="7">Sin ventas en este mes.</td></tr><?php endif; ?>
     </tbody>
 </table></div>
-<p class="sub" style="font-size:.8rem">Ganancia estimada = venta sin IGV − unidades × costo. El costo es el del último lote o compra del producto
+<p class="sub" style="font-size:.8rem">Ganancia estimada = venta sin IGV − unidades × costo. El costo es el del último lote recibido del producto
     (si no tiene, se estima en 75 % del precio sin IGV).</p>
 
 <h2 class="sec">Productos con menor movimiento</h2>

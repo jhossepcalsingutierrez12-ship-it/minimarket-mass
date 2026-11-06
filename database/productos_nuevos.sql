@@ -4,7 +4,7 @@
 --
 -- 1. Marcas y subcategorías de los 9 productos nuevos (para elegirlos en «Agregar producto»)
 -- 2. Baja el precio del arroz Costeño 5 kg a S/ 19.90 y lo anota en el HISTORIAL
--- 3. Una compra de ejemplo a Abarrotes Mayoristas (crea lotes, sube el stock y queda en el historial)
+-- 3. Dos lotes recibidos de ejemplo (suben el stock y quedan en el historial)
 
 SET NAMES utf8mb4;
 USE minimarket_mass;
@@ -45,26 +45,17 @@ SELECT @h, 1, NOW(), 'CAMBIAR_PRECIO', CONCAT('ABA-0001 · Arroz Costeño extra 
 FROM DUAL WHERE @cambia = 1;
 
 -- ---------------------------------------------------------
--- 3. Compra de ejemplo: azúcar y lentejas a Abarrotes Mayoristas Arequipa (tienda Cerro Colorado)
+-- 3. Lotes recibidos de ejemplo: azúcar y lentejas (llegaron el 04/11)
 -- ---------------------------------------------------------
-SET @nueva := (SELECT COUNT(*) = 0 FROM COMPRA WHERE NUMERO_DOC = 'F003-001120');
-SET @c := (SELECT COALESCE(MAX(ID_COMPRA), 0) + 1 FROM COMPRA);
+SET @nueva := (SELECT COUNT(*) = 0 FROM LOTE WHERE CODIGO_LOTE = 'ABA-0002-2611A');
 SET @l := (SELECT COALESCE(MAX(ID_LOTE), 0) + 1 FROM LOTE);
 SET @azucar := (SELECT ID_PRODUCTO FROM PRODUCTO WHERE CODIGO_SKU = 'ABA-0002');
 SET @lentejas := (SELECT ID_PRODUCTO FROM PRODUCTO WHERE CODIGO_SKU = 'ABA-0004');
-
-INSERT INTO COMPRA (ID_COMPRA, ID_PROVEEDOR, ID_TIENDA, ID_EMPLEADO, NUMERO_DOC, FECHA_RECEPCION, TOTAL)
-SELECT @c, 2, 2, 1, 'F003-001120', '2026-11-04 10:30:00', 153.60 FROM DUAL WHERE @nueva = 1;
 
 INSERT INTO LOTE (ID_LOTE, ID_PRODUCTO, CODIGO_LOTE, FECHA_VENCIMIENTO, CANTIDAD_RECIBIDA, COSTO_UNITARIO, FECHA_RECEPCION)
 SELECT @l, @azucar, 'ABA-0002-2611A', NULL, 24, 3.40, '2026-11-04 10:30:00' FROM DUAL WHERE @nueva = 1;
 INSERT INTO LOTE (ID_LOTE, ID_PRODUCTO, CODIGO_LOTE, FECHA_VENCIMIENTO, CANTIDAD_RECIBIDA, COSTO_UNITARIO, FECHA_RECEPCION)
 SELECT @l + 1, @lentejas, 'ABA-0004-2611A', '2027-06-30', 20, 3.60, '2026-11-04 10:30:00' FROM DUAL WHERE @nueva = 1;
-
-INSERT INTO DETALLE_COMPRA (ID_COMPRA, ID_PRODUCTO, ID_LOTE, CANTIDAD, COSTO_UNITARIO, IMPORTE)
-SELECT @c, @azucar, @l, 24, 3.40, 81.60 FROM DUAL WHERE @nueva = 1;
-INSERT INTO DETALLE_COMPRA (ID_COMPRA, ID_PRODUCTO, ID_LOTE, CANTIDAD, COSTO_UNITARIO, IMPORTE)
-SELECT @c, @lentejas, @l + 1, 20, 3.60, 72.00 FROM DUAL WHERE @nueva = 1;
 
 -- La mercadería entra al inventario
 UPDATE INVENTARIO SET STOCK_ACTUAL = STOCK_ACTUAL + 24 WHERE ID_PRODUCTO = @azucar AND @nueva = 1;
@@ -72,7 +63,7 @@ UPDATE INVENTARIO SET STOCK_ACTUAL = STOCK_ACTUAL + 20 WHERE ID_PRODUCTO = @lent
 
 SET @h := (SELECT COALESCE(MAX(ID_HISTORIAL), 0) + 1 FROM HISTORIAL);
 INSERT INTO HISTORIAL (ID_HISTORIAL, ID_EMPLEADO, FECHA_HORA, ACCION, DETALLE)
-SELECT @h, 1, '2026-11-04 10:30:00', 'REGISTRAR_COMPRA', 'Compra F003-001120 a Abarrotes Mayoristas Arequipa E.I.R.L. · 2 productos · S/ 153.60'
+SELECT @h, 1, '2026-11-04 10:30:00', 'RECIBIR_LOTE', 'Lotes ABA-0002-2611A y ABA-0004-2611A · +24 × Azúcar rubia Cartavio 1 kg y +20 × Lentejas Del Misti 500 g'
 FROM DUAL WHERE @nueva = 1;
 
 -- Comprobación

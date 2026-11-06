@@ -7,7 +7,7 @@ date_default_timezone_set('America/Lima');
 require __DIR__ . '/../config/conexion.php';
 foreach (['Producto', 'ProductoRepository', 'UsuarioRepository', 'Repositorio', 'CajaRepository', 'VentaRepository',
           'LoteRepository', 'MermaRepository', 'IncidenteRepository', 'TiendaRepository', 'ReporteRepository',
-          'ProveedorRepository', 'HistorialRepository', 'Correo', 'Captcha'] as $modelo) {
+          'HistorialRepository', 'Correo', 'Captcha'] as $modelo) {
     require_once __DIR__ . '/../models/' . $modelo . '.php';
 }
 foreach (['Controlador', 'AuthController', 'ProductoController', 'CajaController', 'VentaController',
@@ -87,7 +87,7 @@ $ventas     = new VentaController($u, $tiendaActual, new VentaRepository($pdo), 
 $inventario = new InventarioController($u, $tiendaActual, $lotes, new MermaRepository($pdo), $productos, $tiendas);
 $reportes   = new ReporteRepository($pdo);
 $tienda     = new TiendaController($u, $tiendaActual, $tiendas, new IncidenteRepository($pdo), $reportes, $productos, $cajas);
-$admin      = new AdminController($u, $tiendaActual, $reportes, $cajas, new ProveedorRepository($pdo), $historial, $productos, $tiendas);
+$admin      = new AdminController($u, $tiendaActual, $reportes, $historial);
 
 // [acción => [qué hacer con GET, qué hacer con POST]]
 $rutas = [
@@ -128,9 +128,6 @@ $rutas = [
 
     // Funciones del Administrador
     'alertas'      => [fn() => $admin->alertas(), null],
-    'proveedores'  => [fn() => $admin->proveedores(), fn() => $admin->crearProveedor()],
-    'estado_proveedor' => [null, fn() => $admin->estadoProveedor()],
-    'compras'      => [fn() => $admin->compras(), fn() => $admin->registrarCompra()],
     'historial'    => [fn() => $admin->historial(), null],
 ];
 

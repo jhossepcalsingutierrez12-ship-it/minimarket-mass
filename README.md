@@ -41,9 +41,9 @@ Requisitos: Laragon con MySQL en el puerto **3307** y PHP 8.
    - `tiendas.sql` deja las 3 tiendas: Cayma, Cerro Colorado y Yanahuara.
    - `cajas.sql` deja 3 cajas activas en cada tienda.
    - `cajeros.sql` agrega un segundo cajero (`jccama`) para probar 2 cajas abiertas.
-   - `productos_nuevos.sql` agrega las marcas y subcategorías de los 9 productos nuevos, baja el precio del arroz y deja una compra de ejemplo.
+   - `productos_nuevos.sql` agrega las marcas y subcategorías de los 9 productos nuevos, baja el precio del arroz y deja dos lotes recibidos de ejemplo.
    - `ejemplos_tiendas.sql` carga ventas de ejemplo en las 3 tiendas (23 de octubre al 5 de noviembre), cajas abiertas con dinero, una merma y actividades en el historial.
-   - `admin.sql` crea PROVEEDOR, COMPRA, DETALLE_COMPRA e HISTORIAL (proveedores, compras de mercadería e historial de actividades).
+   - `admin.sql` crea HISTORIAL (historial de actividades). Proveedores y compras se quitaron porque no están en el modelo.
    - `cuadre.sql` agrega a LOTE la fecha en que llegó la mercadería (para el cuadre de stock del día).
      **Antes de correrlo cambia los 3 correos** que trae por correos reales.
    - `consultas.sql` tiene consultas de ejemplo (opcional).
@@ -101,5 +101,4 @@ Si `config/correo.php` no existe, el código se muestra en pantalla (modo simula
 | Tiendas y personal | | | ✔ |
 | Alertas de inventario (agotados, poco stock, reposición recomendada, por vencer) | | | ✔ |
 | Reportes con filtros (día, semana, mes, tiendas, ganancias, menor movimiento) | | | ✔ |
-| Proveedores y compras (la compra crea lotes y sube el stock) | | | ✔ |
 | Historial de actividades (quién agregó, cambió precios, anuló, registró mermas…) | | | ✔ |

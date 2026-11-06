@@ -8,10 +8,10 @@ $clase = ['ANULAR_VENTA' => 'bad', 'REGISTRAR_MERMA' => 'warn', 'CAMBIAR_PRECIO'
           'AGREGAR_PRODUCTO' => 'ok', 'REGISTRAR_COMPRA' => 'ok', 'RECIBIR_LOTE' => 'ok'];
 ?>
 <h1>Historial de actividades</h1>
-<p class="sub">Quién hizo qué y cuándo: agregar productos, cambiar precios, anular ventas, registrar mermas, compras, abrir y cerrar cajas.
+<p class="sub">Quién hizo qué y cuándo: agregar productos, cambiar precios, anular ventas, registrar mermas, recibir lotes, abrir y cerrar cajas.
     Se guarda solo y nadie lo puede borrar desde el sistema.</p>
 <?php $ayuda = [
-    'Guarda <b>quién hizo qué y cuándo</b>: agregar productos, cambiar precios, anular ventas, registrar o autorizar mermas, compras, abrir y cerrar cajas.',
+    'Guarda <b>quién hizo qué y cuándo</b>: agregar productos, cambiar precios, anular ventas, registrar o autorizar mermas, recibir lotes, abrir y cerrar cajas.',
     'Se anota <b>solo</b> cada vez que alguien hace una de esas acciones, y no se puede borrar desde el sistema.',
     'Filtra por actividad, empleado o fechas para revisar, por ejemplo, <b>quién anuló una venta</b> o <b>quién cambió un precio</b>.',
 ]; require __DIR__ . '/../partials/ayuda.php'; ?>

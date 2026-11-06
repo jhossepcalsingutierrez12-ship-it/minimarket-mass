@@ -8,8 +8,8 @@ require_once __DIR__ . '/Repositorio.php';
  */
 class CajaRepository extends Repositorio
 {
-    // Regla de la tienda: de sus 3 cajas, como máximo 2 pueden estar abiertas a la vez
-    public const MAX_ABIERTAS_POR_TIENDA = 2;
+    // Cada tienda tiene 3 cajas y las 3 pueden estar abiertas a la vez (cada una con su cajero)
+    public const MAX_ABIERTAS_POR_TIENDA = 3;
 
     private const SELECT_SESION = '
         SELECT s.*, c.NUMERO_CAJA, c.ID_TIENDA, t.NOMBRE AS TIENDA, t.DIRECCION, t.DISTRITO, tu.NOMBRE AS TURNO,

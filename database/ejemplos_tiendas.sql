@@ -1,6 +1,6 @@
 -- Minimarket Mass Arequipa · datos de ejemplo en las 3 tiendas · MySQL 8 (Laragon)
 -- Para que Reportes, Caja (dinero en cada caja) e Historial muestren movimiento en Cayma, Cerro Colorado y Yanahuara:
---   · 22/10: reposición de mercadería (4 compras a los proveedores)
+--   · 22/10: reposición de mercadería (lotes recibidos)
 --   · 23/10 al 05/11: ventas todos los días en las 3 tiendas, una anulación, una merma y cierres con faltante y sobrante
 --   · Ahora: una caja abierta con ventas en cada tienda: Cayma, Cerro Colorado y Yanahuara (el administrador ve cuánto dinero tienen)
 -- Correr después de admin.sql y productos_nuevos.sql. Se puede volver a correr: lo que ya se cargó no se repite.
@@ -18,6 +18,7 @@ DROP PROCEDURE IF EXISTS ej_detalle;
 DROP PROCEDURE IF EXISTS ej_cerrar;
 DROP PROCEDURE IF EXISTS ej_compra;
 DROP PROCEDURE IF EXISTS ej_compra_detalle;
+DROP PROCEDURE IF EXISTS ej_lote;
 DROP PROCEDURE IF EXISTS ej_historial;
 DROP PROCEDURE IF EXISTS cargar_ejemplos;
 
@@ -70,27 +71,15 @@ BEGIN
   WHERE ID_SESION = @sesion;
 END$$
 
--- Compra a un proveedor (queda en @compra); el total se va sumando con cada producto
-CREATE PROCEDURE ej_compra(IN p_prov INT, IN p_tienda INT, IN p_doc VARCHAR(20), IN p_fecha DATETIME)
-BEGIN
-  SET @compra := (SELECT COALESCE(MAX(ID_COMPRA), 0) + 1 FROM COMPRA);
-  SET @fecha_compra := p_fecha;
-  INSERT INTO COMPRA (ID_COMPRA, ID_PROVEEDOR, ID_TIENDA, ID_EMPLEADO, NUMERO_DOC, FECHA_RECEPCION, TOTAL)
-  VALUES (@compra, p_prov, p_tienda, 1, p_doc, p_fecha, 0);
-END$$
-
--- Producto de la compra: crea su LOTE, lo suma al stock y al total de la compra
-CREATE PROCEDURE ej_compra_detalle(IN p_sku VARCHAR(20), IN p_cant INT, IN p_costo DECIMAL(10,2), IN p_vence DATE, IN p_lote VARCHAR(20))
+-- Lote recibido: entra al inventario (suma el stock)
+CREATE PROCEDURE ej_lote(IN p_sku VARCHAR(20), IN p_cant INT, IN p_costo DECIMAL(10,2), IN p_vence DATE, IN p_lote VARCHAR(20), IN p_fecha DATETIME)
 BEGIN
   DECLARE v_prod INT;
   SET v_prod := (SELECT ID_PRODUCTO FROM PRODUCTO WHERE CODIGO_SKU = p_sku);
   SET @lote := (SELECT COALESCE(MAX(ID_LOTE), 0) + 1 FROM LOTE);
   INSERT INTO LOTE (ID_LOTE, ID_PRODUCTO, CODIGO_LOTE, FECHA_VENCIMIENTO, CANTIDAD_RECIBIDA, COSTO_UNITARIO, FECHA_RECEPCION)
-  VALUES (@lote, v_prod, p_lote, p_vence, p_cant, p_costo, @fecha_compra);
-  INSERT INTO DETALLE_COMPRA (ID_COMPRA, ID_PRODUCTO, ID_LOTE, CANTIDAD, COSTO_UNITARIO, IMPORTE)
-  VALUES (@compra, v_prod, @lote, p_cant, p_costo, ROUND(p_cant * p_costo, 2));
+  VALUES (@lote, v_prod, p_lote, p_vence, p_cant, p_costo, p_fecha);
   UPDATE INVENTARIO SET STOCK_ACTUAL = STOCK_ACTUAL + p_cant WHERE ID_PRODUCTO = v_prod;
-  UPDATE COMPRA SET TOTAL = TOTAL + ROUND(p_cant * p_costo, 2) WHERE ID_COMPRA = @compra;
 END$$
 
 CREATE PROCEDURE ej_historial(IN p_emp INT, IN p_fecha DATETIME, IN p_accion VARCHAR(30), IN p_detalle VARCHAR(255))
@@ -106,18 +95,14 @@ BEGIN
   START TRANSACTION;
 
   -- B. Reposición del 22/10 y ventas diarias del 23/10 al 01/11 en las 3 tiendas
-  IF (SELECT COUNT(*) FROM COMPRA WHERE NUMERO_DOC = 'F003-001098') = 0 THEN
-    CALL ej_compra(2, 1, 'F003-001098', '2026-10-22 09:00:00');
-    CALL ej_compra_detalle('ABA-0001', 60, 14.50, NULL, 'ABA-0001-2610R');
-    CALL ej_compra_detalle('ABA-0002', 48, 3.40, NULL, 'ABA-0002-2610R');
-    CALL ej_compra_detalle('ABA-0003', 48, 8.90, '2027-09-30', 'ABA-0003-2610R');
-    CALL ej_compra_detalle('ABA-0004', 40, 3.60, '2027-05-31', 'ABA-0004-2610R');
-    CALL ej_compra(1, 2, 'F001-000301', '2026-10-22 10:30:00');
-    CALL ej_compra_detalle('LAC-0001', 120, 3.10, '2027-04-30', 'LAC-0001-2610R');
-    CALL ej_compra(3, 3, 'F002-004410', '2026-10-22 11:15:00');
-    CALL ej_compra_detalle('BEB-0002', 96, 2.40, '2027-10-31', 'BEB-0002-2610R');
-    CALL ej_compra(4, 1, 'F001-000077', '2026-10-22 12:00:00');
-    CALL ej_compra_detalle('LIM-0001', 24, 19.00, NULL, 'LIM-0001-2610R');
+  IF (SELECT COUNT(*) FROM LOTE WHERE CODIGO_LOTE = 'ABA-0001-2610R') = 0 THEN
+    CALL ej_lote('ABA-0001', 60, 14.50, NULL, 'ABA-0001-2610R', '2026-10-22 09:00:00');
+    CALL ej_lote('ABA-0002', 48, 3.40, NULL, 'ABA-0002-2610R', '2026-10-22 09:00:00');
+    CALL ej_lote('ABA-0003', 48, 8.90, '2027-09-30', 'ABA-0003-2610R', '2026-10-22 09:00:00');
+    CALL ej_lote('ABA-0004', 40, 3.60, '2027-05-31', 'ABA-0004-2610R', '2026-10-22 09:00:00');
+    CALL ej_lote('LAC-0001', 120, 3.10, '2027-04-30', 'LAC-0001-2610R', '2026-10-22 10:30:00');
+    CALL ej_lote('BEB-0002', 96, 2.40, '2027-10-31', 'BEB-0002-2610R', '2026-10-22 11:15:00');
+    CALL ej_lote('LIM-0001', 24, 19.00, NULL, 'LIM-0001-2610R', '2026-10-22 12:00:00');
     -- Mass Cayma · Caja N° 3 · Jorge Ccama
     CALL ej_sesion(6, 6, 2, 2, '2026-10-23 15:01:00', 200.00);
     CALL ej_venta('BOLETA', NULL, '2026-10-23 19:46:00', 27.60, 1, 50.00);
@@ -409,10 +394,10 @@ BEGIN
     CALL ej_detalle('LAC-0001', 3, 4.20);
     CALL ej_detalle('ABA-0004', 1, 5.20);
     CALL ej_cerrar('2026-11-01 23:08:00', 0.00, 4);
-    CALL ej_historial(1, '2026-10-22 09:00:00', 'REGISTRAR_COMPRA', 'Compra F003-001098 a Abarrotes Mayoristas Arequipa E.I.R.L. · 4 productos · S/ 1604.40');
-    CALL ej_historial(1, '2026-10-22 10:30:00', 'REGISTRAR_COMPRA', 'Compra F001-000301 a Distribuidora Lácteos del Sur S.A.C. · 1 producto · S/ 372.00');
-    CALL ej_historial(1, '2026-10-22 11:15:00', 'REGISTRAR_COMPRA', 'Compra F002-004410 a Bebidas y Refrescos Characato S.A.C. · 1 producto · S/ 230.40');
-    CALL ej_historial(1, '2026-10-22 12:00:00', 'REGISTRAR_COMPRA', 'Compra F001-000077 a Limpieza Total Perú S.A.C. · 1 producto · S/ 456.00');
+    CALL ej_historial(1, '2026-10-22 09:00:00', 'RECIBIR_LOTE', 'Lotes recibidos (factura F003-001098) · 4 productos · S/ 1604.40');
+    CALL ej_historial(1, '2026-10-22 10:30:00', 'RECIBIR_LOTE', 'Lotes recibidos (factura F001-000301) · 1 producto · S/ 372.00');
+    CALL ej_historial(1, '2026-10-22 11:15:00', 'RECIBIR_LOTE', 'Lotes recibidos (factura F002-004410) · 1 producto · S/ 230.40');
+    CALL ej_historial(1, '2026-10-22 12:00:00', 'RECIBIR_LOTE', 'Lotes recibidos (factura F001-000077) · 1 producto · S/ 456.00');
     CALL ej_historial(3, '2026-10-23 15:09:00', 'CERRAR_CAJA', 'Cerró Mass Cerro Colorado · Caja N° 2 · sistema S/ 150.00 · contado S/ 150.50 · diferencia S/ 0.50 (sobrante)');
     CALL ej_historial(4, '2026-10-23 23:06:00', 'CERRAR_CAJA', 'Cerró Mass Yanahuara · Caja N° 2 · sistema S/ 159.00 · contado S/ 159.50 · diferencia S/ 0.50 (sobrante)');
     CALL ej_historial(2, '2026-10-26 15:03:00', 'CERRAR_CAJA', 'Cerró Mass Cayma · Caja N° 2 · sistema S/ 209.00 · contado S/ 209.50 · diferencia S/ 0.50 (sobrante)');
@@ -491,11 +476,25 @@ BEGIN
     CALL ej_historial(3, '2026-11-05 15:06:00', 'CERRAR_CAJA', 'Cerró Mass Cerro Colorado · Caja N° 2 · sistema S/ 172.30 · contado S/ 173.30 · diferencia S/ 1.00 (sobrante)');
   END IF;
 
-  -- C. Cajas abiertas ahora en Cayma (Rosa), Cerro Colorado (Milagros) y Yanahuara (Kevin): el administrador ve su dinero en «Caja»
-  IF (SELECT COUNT(*) FROM SESION_CAJA WHERE ESTADO = 'ABIERTA' AND (ID_CAJA = 1 OR ID_CAJERO = 5)) = 0
-     AND (SELECT COUNT(*) FROM SESION_CAJA s JOIN CAJA c ON c.ID_CAJA = s.ID_CAJA WHERE s.ESTADO = 'ABIERTA' AND c.ID_TIENDA = 1) < 2 THEN
-    -- Mass Cayma · Caja N° 1 · Rosa Quispe
-    CALL ej_sesion(1, 5, IF(HOUR(NOW()) < 15, 1, 2), NULL, NOW() - INTERVAL 210 MINUTE, 200.00);
+  -- Los cajeros con usuario (rquispe y jccama) quedan SIN caja abierta: al entrar eligen tienda y caja
+  UPDATE SESION_CAJA s
+     SET EFECTIVO_SISTEMA = s.MONTO_APERTURA + COALESCE((SELECT SUM(p.MONTO) FROM PAGO p JOIN VENTA v ON v.ID_VENTA = p.ID_VENTA
+                            WHERE v.ID_SESION = s.ID_SESION AND v.ESTADO = 'EMITIDA' AND p.ID_METODO_PAGO = 1), 0)
+   WHERE s.ESTADO = 'ABIERTA' AND s.ID_CAJERO IN (5, 6);
+  UPDATE SESION_CAJA
+     SET EFECTIVO_CONTADO = EFECTIVO_SISTEMA, DIFERENCIA = 0, ESTADO = 'CERRADA', ID_SUPERVISOR = 2,
+         FECHA_CIERRE = GREATEST(NOW(), FECHA_APERTURA + INTERVAL 1 MINUTE)
+   WHERE ESTADO = 'ABIERTA' AND ID_CAJERO IN (5, 6);
+
+  -- Cajera de ejemplo en Cayma (sin usuario), para que Cayma también tenga una caja abierta
+  INSERT IGNORE INTO EMPLEADO (ID_EMPLEADO, ID_TIENDA, ID_CARGO, ID_SUPERVISOR, DNI, NOMBRES, APELLIDOS, TELEFONO, GRUPO_SANGUINEO, CONTACTO_FAMILIAR, TELEFONO_FAMILIAR, FECHA_INGRESO, SUELDO, ESTADO)
+  VALUES (11, 1, 3, 2, '76778899', 'Luz', 'Ticona Mamani', '958111011', NULL, NULL, NULL, '2025-09-01', 1200.00, 'A');
+
+  -- C. Una caja abierta ahora en cada tienda: Cayma (Luz), Cerro Colorado (Milagros) y Yanahuara (Kevin). Quedan 2 libres por tienda
+  IF (SELECT COUNT(*) FROM SESION_CAJA WHERE ESTADO = 'ABIERTA' AND (ID_CAJA = 1 OR ID_CAJERO = 11)) = 0
+     AND (SELECT COUNT(*) FROM SESION_CAJA s JOIN CAJA c ON c.ID_CAJA = s.ID_CAJA WHERE s.ESTADO = 'ABIERTA' AND c.ID_TIENDA = 1) < 3 THEN
+    -- Mass Cayma · Caja N° 1 · Luz Ticona
+    CALL ej_sesion(1, 11, IF(HOUR(NOW()) < 15, 1, 2), NULL, NOW() - INTERVAL 210 MINUTE, 200.00);
     CALL ej_venta('BOLETA', NULL, NOW() - INTERVAL 185 MINUTE, 40.90, 1, 50.00);
     CALL ej_detalle('ABA-0001', 1, 19.90);
     CALL ej_detalle('LAC-0001', 5, 4.20);
@@ -509,10 +508,10 @@ BEGIN
     CALL ej_detalle('ABA-0004', 1, 5.20);
     CALL ej_venta('BOLETA', NULL, NOW() - INTERVAL 15 MINUTE, 29.90, 2, NULL);
     CALL ej_detalle('LIM-0001', 1, 29.90);
-    CALL ej_historial(5, NOW() - INTERVAL 210 MINUTE, 'ABRIR_CAJA', 'Abrió Mass Cayma · Caja N° 1 con S/ 200.00');
+    CALL ej_historial(11, NOW() - INTERVAL 210 MINUTE, 'ABRIR_CAJA', 'Abrió Mass Cayma · Caja N° 1 con S/ 200.00');
   END IF;
   IF (SELECT COUNT(*) FROM SESION_CAJA WHERE ESTADO = 'ABIERTA' AND (ID_CAJA = 3 OR ID_CAJERO = 7)) = 0
-     AND (SELECT COUNT(*) FROM SESION_CAJA s JOIN CAJA c ON c.ID_CAJA = s.ID_CAJA WHERE s.ESTADO = 'ABIERTA' AND c.ID_TIENDA = 2) < 2 THEN
+     AND (SELECT COUNT(*) FROM SESION_CAJA s JOIN CAJA c ON c.ID_CAJA = s.ID_CAJA WHERE s.ESTADO = 'ABIERTA' AND c.ID_TIENDA = 2) < 3 THEN
     -- Mass Cerro Colorado · Caja N° 1 · Milagros Pari
     CALL ej_sesion(3, 7, IF(HOUR(NOW()) < 15, 1, 2), NULL, NOW() - INTERVAL 200 MINUTE, 150.00);
     CALL ej_venta('BOLETA', NULL, NOW() - INTERVAL 170 MINUTE, 25.80, 1, 50.00);
@@ -528,7 +527,7 @@ BEGIN
     CALL ej_historial(7, NOW() - INTERVAL 200 MINUTE, 'ABRIR_CAJA', 'Abrió Mass Cerro Colorado · Caja N° 1 con S/ 150.00');
   END IF;
   IF (SELECT COUNT(*) FROM SESION_CAJA WHERE ESTADO = 'ABIERTA' AND (ID_CAJA = 5 OR ID_CAJERO = 8)) = 0
-     AND (SELECT COUNT(*) FROM SESION_CAJA s JOIN CAJA c ON c.ID_CAJA = s.ID_CAJA WHERE s.ESTADO = 'ABIERTA' AND c.ID_TIENDA = 3) < 2 THEN
+     AND (SELECT COUNT(*) FROM SESION_CAJA s JOIN CAJA c ON c.ID_CAJA = s.ID_CAJA WHERE s.ESTADO = 'ABIERTA' AND c.ID_TIENDA = 3) < 3 THEN
     -- Mass Yanahuara · Caja N° 1 · Kevin Turpo
     CALL ej_sesion(5, 8, IF(HOUR(NOW()) < 15, 1, 2), NULL, NOW() - INTERVAL 180 MINUTE, 150.00);
     CALL ej_venta('BOLETA', NULL, NOW() - INTERVAL 150 MINUTE, 51.70, 1, 100.00);
@@ -553,8 +552,7 @@ DROP PROCEDURE ej_sesion;
 DROP PROCEDURE ej_venta;
 DROP PROCEDURE ej_detalle;
 DROP PROCEDURE ej_cerrar;
-DROP PROCEDURE ej_compra;
-DROP PROCEDURE ej_compra_detalle;
+DROP PROCEDURE ej_lote;
 DROP PROCEDURE ej_historial;
 DROP PROCEDURE cargar_ejemplos;
 

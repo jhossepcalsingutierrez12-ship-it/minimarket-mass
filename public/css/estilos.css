@@ -265,7 +265,7 @@ input[type="password"]::-ms-reveal,input[type="password"]::-ms-clear{display:non
 .guia-cat{display:flex;flex-wrap:wrap;gap:6px 12px;font-size:.78rem;color:var(--muted)}
 .guia-cat span{display:inline-flex;align-items:center;gap:4px}
 .prod .foto .img-cat,.detalle .foto .img-cat{width:96px;height:96px}
-/* Funciones del administrador: filtros con fechas, alertas, compras */
+/* Funciones del administrador: filtros con fechas y alertas */
 .fecha-filtro,.check-filtro{display:inline-flex;align-items:center;gap:6px;font-size:.8rem;font-weight:800;text-transform:uppercase}
 .fecha-filtro input{min-width:0}
 .check-filtro{text-transform:none;font-weight:600;font-size:.88rem}
@@ -274,11 +274,7 @@ input[type="password"]::-ms-reveal,input[type="password"]::-ms-clear{display:non
 .kpi-mal{border-color:var(--bad);background:var(--bad-bg)}
 .kpi-mal b{color:var(--bad)}
 .kpi-ojo{background:var(--warn-bg)}
-.lineas-compra select{font:inherit;padding:8px;border:2px solid var(--k);border-radius:4px;max-width:100%;width:100%;min-width:220px}
-.lineas-compra input[type=date]{font:inherit;padding:7px;border:2px solid var(--k);border-radius:4px}
-.lineas-compra .qty{width:90px}
 .tabla tr.fila-mal td{background:var(--bad-bg)}
-.lineas-compra .err{display:block;color:var(--bad);font-size:.78rem;font-weight:700;margin-top:4px}
 .aviso-alertas{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
 .filtros .check-filtro input,.filtros .fecha-filtro input{flex:none}
 /* Catálogo: unidades que quedan, separadas del estado */
@@ -291,8 +287,10 @@ input[type="password"]::-ms-reveal,input[type="password"]::-ms-clear{display:non
 .ayuda summary{cursor:pointer;font-weight:800;text-transform:uppercase;font-size:.78rem}
 .ayuda ul{margin:8px 0 0;padding-left:20px}
 .ayuda li{margin:3px 0}
-.prov-rubro{display:block;color:var(--muted);font-size:.82rem;font-weight:400;margin-top:2px}
 /* Agregar producto: lista de productos nuevos que llenan el formulario */
 .sugeridos{border:2px solid var(--k);border-radius:6px;background:var(--y-soft);padding:12px 14px;margin-bottom:16px;display:flex;flex-direction:column;gap:6px}
 .sugeridos label{font-size:.78rem;font-weight:800;text-transform:uppercase}
 .sugeridos select{font:inherit;padding:10px 12px;border:2px solid var(--k);border-radius:4px;background:#fff}
+/* Abre tu caja: las 3 cajas de la tienda elegida */
+.cajas-opciones .opcion-caja b{font-size:1rem}
+.opcion-caja:has(input:disabled) small:last-child{color:var(--bad);font-weight:700}

@@ -2,7 +2,7 @@
 /**
  * @var ?array $mia @var ?array $resumen @var float $efectivoMia @var array $libres @var array $turnos
  * @var array $abiertas @var array $historial @var callable $efectivo @var callable $vendidoCaja
- * @var array $cajas @var array $tiendas @var array $errores @var array $form @var Usuario $u
+ * @var array $cajas @var array $tiendas @var array $abiertasTienda @var array $errores @var array $form @var Usuario $u
  */
 $titulo = 'Caja';
 $seccion = 'caja';
@@ -140,6 +140,8 @@ foreach ($cajas as $c) {
     <p class="sub" style="font-size:.8rem">Efectivo en caja = monto de apertura + pagos en efectivo de las ventas emitidas. Yape, Plin y tarjeta no entran a la caja.</p>
 <?php else: ?>
     <h2 class="sec">Cajas de las 3 tiendas</h2>
+    <p class="sub">Cada tienda tiene 3 cajas; cada cajero abre una. Abiertas ahora
+        <?php foreach ($tiendas as $t): ?> · <b><?= e(str_replace('Mass ', '', $t['NOMBRE'])) ?></b>: <?= $abiertasTienda[(int) $t['ID_TIENDA']] ?? 0 ?>/<?= CajaRepository::MAX_ABIERTAS_POR_TIENDA ?><?php endforeach; ?></p>
     <div class="tabla"><table>
         <thead><tr><th>Tienda</th><th>Caja</th><th>Lugar</th><th>Estado</th></tr></thead>
         <tbody>

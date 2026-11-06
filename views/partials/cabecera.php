@@ -41,8 +41,6 @@ $menu = [
         ['mermas', 'Mermas', 'merma', true],
         ['agregar', 'Agregar producto', 'mas', $u->puedeAdministrarProductos()],
         ['pdf', 'Catálogo en PDF', 'pdf', $u->puedeAdministrarProductos()],
-        ['proveedores', 'Proveedores', 'camion', $u->puedeGestionarProveedores()],
-        ['compras', 'Compras', 'bolsa', $u->puedeGestionarProveedores()],
     ],
     'Seguridad' => [
         ['incidentes', 'Incidentes', 'alerta', true],
