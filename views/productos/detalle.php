@@ -6,7 +6,7 @@ require __DIR__ . '/../partials/cabecera.php';
 
 $sku = $producto->getCodigoSku();
 ?>
-<a class="volver" href="?accion=listar">← Volver al catálogo</a>
+<?= migas([['Catálogo', '?accion=listar'], [$producto->getNombre(), null]]) ?>
 <div class="card detalle">
     <div class="foto"><?= fotoProducto($producto) ?></div>
     <div>
@@ -25,6 +25,12 @@ $sku = $producto->getCodigoSku();
                 <dd><?php foreach ($lotes as $l): ?><?= e($l['CODIGO_LOTE'] ?? 'Sin código') ?> · vence <?= fecha($l['FECHA_VENCIMIENTO']) ?><br><?php endforeach; ?></dd>
             <?php endif; ?>
         </dl>
+        <?php if ($u->puedeAdministrarProductos()): ?>
+            <div class="botones" style="margin-top:14px">
+                <a class="btn ghost sm" href="?accion=editar&amp;id=<?= $producto->getIdProducto() ?>"><?= icono('lapiz', 16) ?>Editar</a>
+                <a class="btn peligro sm" href="?accion=baja&amp;id=<?= $producto->getIdProducto() ?>"><?= icono('basura', 16) ?>Dar de baja</a>
+            </div>
+        <?php endif; ?>
     </div>
 </div>
 

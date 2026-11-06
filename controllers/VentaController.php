@@ -252,6 +252,7 @@ class VentaController extends Controlador
         $this->exigir($this->usuario->puedeAnularVenta());
         try {
             $v = $this->ventas->anular(self::entero('id') ?? 0, $this->usuario);
+            Historial::anotar($this->usuario, 'ANULAR_VENTA', "Anuló {$v['SERIE']}-{$v['NUMERO']}" . (isset($v['TOTAL']) ? ' (' . sol((float) $v['TOTAL']) . ')' : ''));
             $this->aviso('ok', "{$v['SERIE']}-{$v['NUMERO']} anulada por {$this->usuario->getNombreCompleto()}. El stock volvió al inventario.");
         } catch (DomainException $e) {
             $this->aviso('err', $e->getMessage());

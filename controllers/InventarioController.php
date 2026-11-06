@@ -60,6 +60,7 @@ class InventarioController extends Controlador
             return;
         }
         $this->lotes->recibir($p->getIdProducto(), $form['codigo'] ?: null, $form['vence'] ?: null, $cant);
+        Historial::anotar($this->usuario, 'RECIBIR_LOTE', 'Lote ' . ($form['codigo'] ?: 'sin código') . " · +$cant × {$p->getNombre()}");
         $this->aviso('ok', 'Lote ' . ($form['codigo'] ?: 'sin código') . " recibido: +$cant und. de {$p->getNombre()} (stock ahora " . ($p->getStockActual() + $cant) . ').');
         $this->redirigir('lotes');
     }
@@ -105,6 +106,9 @@ class InventarioController extends Controlador
             try {
                 $valor = $this->mermas->registrar($this->usuario, (int) $form['producto'], $form['lote'] === '' ? null : (int) $form['lote'],
                     (int) $form['zona'], $form['motivo'], $cant, $form['observacion'] ?: null);
+                $pm = $this->productos->buscarPorId((int) $form['producto']);
+                Historial::anotar($this->usuario, 'REGISTRAR_MERMA', "Merma: $cant × " . ($pm ? $pm->getNombre() : 'producto ' . $form['producto'])
+                    . ' (' . mb_strtolower(self::MOTIVOS[$form['motivo']] ?? $form['motivo']) . ') · ' . sol($valor));
                 $this->aviso('ok', "Merma registrada (" . sol($valor) . "). El stock ya bajó y queda pendiente de autorización.");
                 $this->redirigir('mermas');
             } catch (DomainException $e) {
@@ -119,6 +123,7 @@ class InventarioController extends Controlador
         $this->exigir($this->usuario->puedeAutorizarMerma());
         try {
             $m = $this->mermas->autorizar(self::entero('id') ?? 0, $this->usuario);
+            Historial::anotar($this->usuario, 'AUTORIZAR_MERMA', "Aprobó la merma de {$m['NOMBRE']}");
             $this->aviso('ok', "Merma de {$m['NOMBRE']} aprobada por {$this->usuario->getNombreCompleto()}.");
         } catch (DomainException $e) {
             $this->aviso('err', $e->getMessage());

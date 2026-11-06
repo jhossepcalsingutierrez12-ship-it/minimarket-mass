@@ -8,6 +8,9 @@ require_once __DIR__ . '/Repositorio.php';
  */
 class CajaRepository extends Repositorio
 {
+    // Cada tienda tiene 3 cajas y las 3 pueden estar abiertas a la vez (cada una con su cajero)
+    public const MAX_ABIERTAS_POR_TIENDA = 3;
+
     private const SELECT_SESION = '
         SELECT s.*, c.NUMERO_CAJA, c.ID_TIENDA, t.NOMBRE AS TIENDA, t.DIRECCION, t.DISTRITO, tu.NOMBRE AS TURNO,
                e.NOMBRES AS CAJERO_NOMBRES, e.APELLIDOS AS CAJERO_APELLIDOS
@@ -59,10 +62,22 @@ class CajaRepository extends Repositorio
             ORDER BY c.ID_TIENDA, c.NUMERO_CAJA")->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    // Cajas activas (de cualquiera de las 3 tiendas) que no tienen una sesión abierta
+    /** @return array<int, int> [ID_TIENDA => cajas abiertas ahora] */
+    public function abiertasPorTienda(): array
+    {
+        $r = [];
+        foreach ($this->cajasConEstado() as $c) {
+            $r[(int) $c['ID_TIENDA']] = ($r[(int) $c['ID_TIENDA']] ?? 0) + ($c['ID_SESION'] !== null ? 1 : 0);
+        }
+        return $r;
+    }
+
+    // Cajas que se pueden abrir: activas, sin sesión y de una tienda que aún no tiene 2 abiertas
     public function cajasLibres(): array
     {
-        return array_values(array_filter($this->cajasConEstado(), fn($c) => $c['ESTADO_CAJA'] === 'A' && $c['ID_SESION'] === null));
+        $abiertas = $this->abiertasPorTienda();
+        return array_values(array_filter($this->cajasConEstado(), fn($c) => $c['ESTADO_CAJA'] === 'A' && $c['ID_SESION'] === null
+            && ($abiertas[(int) $c['ID_TIENDA']] ?? 0) < self::MAX_ABIERTAS_POR_TIENDA));
     }
 
     /**
@@ -85,7 +100,8 @@ class CajaRepository extends Repositorio
         return $this->enTransaccion(function () use ($idCaja, $cajero, $idTurno, $monto): int {
             $libre = array_filter($this->cajasLibres(), fn($c) => (int) $c['ID_CAJA'] === $idCaja);
             if (!$libre) {
-                throw new DomainException('Esa caja ya está abierta o está fuera de servicio.');
+                throw new DomainException('No se puede abrir esa caja: ya está abierta, está fuera de servicio o su tienda ya tiene '
+                    . self::MAX_ABIERTAS_POR_TIENDA . ' cajas abiertas (máximo).');
             }
             if ($this->sesionAbiertaDe($cajero->getIdEmpleado()) !== null) {
                 throw new DomainException('Ya tienes una caja abierta.');

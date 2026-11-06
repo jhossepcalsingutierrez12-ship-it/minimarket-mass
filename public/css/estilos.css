@@ -265,3 +265,238 @@ input[type="password"]::-ms-reveal,input[type="password"]::-ms-clear{display:non
 .guia-cat{display:flex;flex-wrap:wrap;gap:6px 12px;font-size:.78rem;color:var(--muted)}
 .guia-cat span{display:inline-flex;align-items:center;gap:4px}
 .prod .foto .img-cat,.detalle .foto .img-cat{width:96px;height:96px}
+/* Funciones del administrador: filtros con fechas y alertas */
+.fecha-filtro,.check-filtro{display:inline-flex;align-items:center;gap:6px;font-size:.8rem;font-weight:800;text-transform:uppercase}
+.fecha-filtro input{min-width:0}
+.check-filtro{text-transform:none;font-weight:600;font-size:.88rem}
+.check-filtro input{accent-color:var(--k);width:18px;height:18px}
+.filtros .btn{align-self:center}
+.kpi-mal{border-color:var(--bad);background:var(--bad-bg)}
+.kpi-mal b{color:var(--bad)}
+.kpi-ojo{background:var(--warn-bg)}
+.tabla tr.fila-mal td{background:var(--bad-bg)}
+.aviso-alertas{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.filtros .check-filtro input,.filtros .fecha-filtro input{flex:none}
+/* Catálogo: unidades que quedan, separadas del estado */
+.stock-linea{margin:6px 0 0;font-size:.85rem;color:var(--k)}
+.stock-linea b{font-size:1rem}
+.stock-linea span{color:var(--muted);font-size:.8rem}
+.stock-linea.sin{color:var(--bad);font-weight:700}
+/* Recuadro «¿Para qué sirve?» en las secciones del administrador */
+.ayuda{border:2px dashed var(--k);border-radius:6px;background:var(--y-soft);padding:12px 16px;margin:0 0 18px;font-size:.9rem}
+.ayuda summary{cursor:pointer;font-weight:800;text-transform:uppercase;font-size:.78rem}
+.ayuda ul{margin:8px 0 0;padding-left:20px}
+.ayuda li{margin:3px 0}
+/* Agregar producto: lista de productos nuevos que llenan el formulario */
+.sugeridos{border:2px solid var(--k);border-radius:6px;background:var(--y-soft);padding:12px 14px;margin-bottom:16px;display:flex;flex-direction:column;gap:6px}
+.sugeridos label{font-size:.78rem;font-weight:800;text-transform:uppercase}
+.sugeridos select{font:inherit;padding:10px 12px;border:2px solid var(--k);border-radius:4px;background:#fff}
+/* Abre tu caja: las 3 cajas de la tienda elegida */
+.cajas-opciones .opcion-caja b{font-size:1rem}
+.opcion-caja:has(input:disabled) small:last-child{color:var(--bad);font-weight:700}
+
+/* ===== Pantalla Caja y detalles generales ===== */
+/* Misma sombra en tarjetas y tablas; filas con hover amarillo suave */
+.tabla{box-shadow:4px 4px 0 var(--k)}
+.tabla tbody tr:hover td{background:var(--y-soft)}
+/* Ancho máximo del contenido y menú lateral fijo al hacer scroll */
+.contenido{max-width:1248px}
+.lateral{position:sticky;top:0;align-self:flex-start;height:100vh;overflow-y:auto}
+.lateral .grupo:first-child{padding-top:2px}
+@media (max-width:760px){.lateral{position:static;height:auto;align-self:stretch}}
+/* Estados: color fuerte solo para ABIERTA; lo demás discreto */
+.tag.abierta{background:var(--k);color:var(--y)}
+.tag.discreto{background:#eeeeee;color:#6b6b6b}
+/* Tarjeta «Tu caja está abierta» */
+.caja-mia{margin-bottom:22px}
+.caja-mia .cab{margin-bottom:0}
+.caja-mia h3{margin:0;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.caja-efectivo{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:4px 16px;margin:14px 0 16px;padding:14px 18px;border:2px solid var(--k);border-radius:6px;background:var(--y-soft)}
+.caja-efectivo span{font-size:.8rem;font-weight:800;text-transform:uppercase;letter-spacing:.3px}
+.caja-efectivo b{font-family:"Archivo Black","Arial Black",sans-serif;font-size:2.1rem;line-height:1.1;font-variant-numeric:tabular-nums}
+.caja-efectivo small{flex-basis:100%;color:var(--muted);font-size:.8rem}
+.caja-datos{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px 22px;margin:0 0 14px}
+.caja-datos span{display:block;font-size:.8rem;color:var(--muted);text-transform:uppercase;font-weight:700;margin-bottom:2px}
+.caja-datos b{font-size:1.05rem;font-variant-numeric:tabular-nums}
+@media (max-width:760px){.caja-datos{grid-template-columns:repeat(2,minmax(0,1fr))}.caja-efectivo b{font-size:1.7rem}}
+@media (max-width:340px){.caja-datos{grid-template-columns:minmax(0,1fr)}}
+/* «Cajas de las 3 tiendas»: una tarjeta por tienda con sus 3 cajas */
+.tiendas-cajas{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:18px;margin-bottom:24px}
+.tienda-cajas h3{margin:0;font-size:1.05rem}
+.tc-cab{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:14px}
+.tc-dir{margin:3px 0 0;color:var(--muted);font-size:.82rem;line-height:1.35}
+.tc-cupo{flex:none;text-align:right}
+.tc-num{font-size:.85rem;color:var(--muted)}
+.tc-num b{font-family:"Archivo Black","Arial Black",sans-serif;font-size:1.45rem;color:var(--k)}
+.tc-label{display:block;font-size:.66rem;font-weight:800;text-transform:uppercase;color:var(--muted);letter-spacing:.4px}
+.tc-cupo.llena .tc-label{color:var(--k)}
+.tc-barra{display:flex;justify-content:flex-end;gap:4px;margin-top:5px}
+.tc-barra i{width:20px;height:8px;border:1.5px solid var(--k);border-radius:2px;background:#fff}
+.tc-barra i.on{background:var(--k)}
+.tc-chips{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.chip-caja{display:flex;flex-direction:column;gap:2px;min-width:0;padding:9px 10px;border:1.5px solid var(--line);border-radius:6px;background:#fafafa}
+.cc-num{font-size:.8rem;font-weight:800;text-transform:uppercase}
+.cc-estado{font-size:.68rem;font-weight:800;text-transform:uppercase;color:#8f8f8f;letter-spacing:.3px}
+.cc-quien{font-size:.78rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chip-caja.abierta{border:2px solid var(--k);background:var(--y)}
+.chip-caja.abierta .cc-estado{color:var(--k)}
+.chip-caja.mia{box-shadow:3px 3px 0 var(--k)}
+.chip-caja.fuera{opacity:.55}
+.chip-caja.fuera .cc-num{text-decoration:line-through}
+
+/* =====================================================================
+   Parte 1 · Mejoras visuales globales (sin cambiar la lógica)
+   ===================================================================== */
+/* Íconos dentro de botones y enlaces */
+.ico{flex:none;vertical-align:middle}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;transition:background-color .16s ease,color .16s ease,transform .16s ease,box-shadow .16s ease}
+.btn:hover:not(:disabled){transform:translate(-1px,-1px);box-shadow:3px 3px 0 var(--k)}
+.btn:active:not(:disabled){transform:none;box-shadow:none}
+.btn.rojo:hover:not(:disabled),.btn.peligro:hover:not(:disabled){box-shadow:3px 3px 0 var(--bad)}
+.btn.peligro:hover:not(:disabled){background:var(--bad-bg)}
+.chip,.lateral a{transition:background-color .16s ease,color .16s ease}
+.chip:hover:not(.active){background:var(--y-soft)}
+
+/* Foco visible y claro en todo lo que se puede usar con teclado */
+:focus-visible{outline:3px solid var(--k);outline-offset:2px}
+.lateral a:focus-visible,.btn:not(.ghost):not(.amarillo):focus-visible{outline-color:var(--y);box-shadow:0 0 0 5px var(--k)}
+input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid var(--y);outline-offset:0;border-color:var(--k)}
+.saltar{position:absolute;left:-999px;top:8px;z-index:100;background:var(--k);color:var(--y);padding:8px 14px;font-weight:800;border-radius:4px}
+.saltar:focus{left:12px}
+.contenido:focus{outline:none}
+
+/* Transición suave al cambiar de pantalla */
+.contenido > *{animation:entrar .18s ease both}
+@keyframes entrar{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* Avisos flotantes (toast): no empujan el contenido y se van solos */
+.toast-zona{position:fixed;top:16px;right:16px;z-index:60;display:flex;flex-direction:column;gap:10px;pointer-events:none;max-width:min(420px,calc(100vw - 32px))}
+.toast{pointer-events:auto;display:flex;align-items:flex-start;gap:10px;padding:12px 12px 12px 14px;border:2px solid var(--k);border-radius:6px;box-shadow:4px 4px 0 var(--k);background:#fff;font-weight:600;font-size:.92rem;animation:toastIn .2s ease both}
+.toast span{flex:1;min-width:0;padding-top:1px}
+.toast.ok{background:var(--ok-bg)}.toast.ok > .ico{color:var(--ok)}
+.toast.err{background:var(--bad-bg)}.toast.err > .ico{color:var(--bad)}
+.toast.info{background:var(--y-soft)}
+.toast-x{flex:none;display:grid;place-items:center;width:32px;height:32px;margin:-6px -6px -6px 0;border:0;border-radius:4px;background:transparent;color:var(--k);cursor:pointer}
+.toast-x:hover{background:rgba(0,0,0,.08)}
+.toast.saliendo{animation:toastOut .2s ease both}
+@keyframes toastIn{from{opacity:0;transform:translateX(24px)}to{opacity:1;transform:none}}
+@keyframes toastOut{to{opacity:0;transform:translateX(24px)}}
+
+/* Migas de pan (Detalle, Editar, Dar de baja, Agregar) */
+.migas{margin:0 0 16px}
+.migas ol{list-style:none;display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;margin:0;padding:0;font-size:.85rem;font-weight:700}
+.migas li{display:flex;align-items:center;gap:8px;min-width:0}
+.migas li + li::before{content:"›";color:var(--muted);font-weight:800}
+.migas a{display:inline-flex;align-items:center;gap:4px;text-transform:uppercase;text-decoration:none;border-bottom:2px solid var(--y)}
+.migas a:hover{background:var(--y-soft)}
+.migas [aria-current]{color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:40ch}
+
+/* Estados vacíos con ícono y texto guía */
+.vacio{display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px;padding:32px 18px;border:2px dashed #c9c4b3;border-radius:6px;color:var(--muted);background:#fcfbf6}
+.vacio .ico{color:#b5ae96;margin-bottom:4px}
+.vacio-tit{margin:0;font-weight:800;color:var(--k);font-size:1.02rem}
+.vacio-guia{margin:0 0 6px;max-width:46ch;font-size:.9rem}
+
+/* Menú hamburguesa (solo en pantallas chicas) */
+.btn-menu{display:none;align-items:center;justify-content:center;width:44px;height:44px;border:2px solid var(--k);border-radius:4px;background:var(--y);color:var(--k);cursor:pointer}
+
+/* =====================================================================
+   Catálogo: foto más grande, precio legible, chips con contador, orden
+   ===================================================================== */
+.filtros-catalogo{align-items:stretch}
+.buscador{flex:1 1 260px;display:flex;align-items:center;gap:8px;border:2px solid var(--k);border-radius:4px;background:#fff;padding:0 10px}
+.buscador .ico{color:var(--muted)}
+.buscador input{border:0;padding:10px 0;flex:1;min-width:0;font:inherit;background:transparent}
+.buscador input:focus-visible{outline:none}
+.buscador:focus-within{outline:3px solid var(--y);outline-offset:0}
+.chip{display:inline-flex;align-items:center;gap:6px}
+.chip-n{display:inline-grid;place-items:center;min-width:22px;height:20px;padding:0 6px;border-radius:10px;background:var(--k);color:#fff;font-size:.7rem;font-weight:800}
+.chip.active .chip-n{background:var(--k);color:var(--y)}
+.resultado{margin:-8px 0 12px;font-size:.85rem}
+.grid{grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:20px}
+.card.prod{transition:transform .18s ease,box-shadow .18s ease;padding:14px}
+.card.prod:hover{transform:translate(-2px,-2px);box-shadow:6px 6px 0 var(--k)}
+.prod .foto{height:190px;background:#fff;font-size:3rem}
+.prod .foto img{max-height:176px}
+.prod .foto .img-cat{width:110px;height:110px}
+.prod.estado-agotado .foto img{filter:grayscale(.85);opacity:.6}
+.prod h3{font-size:1.02rem;min-height:2.6em}
+.precio-fila{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 10px}
+.prod .precio{font-size:1.65rem;padding:2px 12px;letter-spacing:.3px}
+.prod .igv{font-size:.76rem}
+/* Estados de stock bien distintos: punto de color + borde; Agotado en sólido */
+.tag.estado{display:inline-flex;align-items:center;gap:6px;padding:3px 9px;border:1.5px solid currentColor;font-size:.74rem}
+.tag.estado::before{content:"";width:8px;height:8px;border-radius:50%;background:currentColor}
+.tag.estado.Normal{background:var(--ok-bg);color:var(--ok)}
+.tag.estado.Reponer{background:var(--warn-bg);color:var(--warn)}
+.tag.estado.Agotado{background:var(--bad);color:#fff;border-color:var(--bad)}
+.tag.estado.Agotado::before{background:#fff}
+.prod .acciones{display:flex;flex-wrap:wrap;gap:6px}
+.aviso-alertas > span{display:inline-flex;align-items:center;gap:6px}
+
+/* =====================================================================
+   Celular: menú con hamburguesa y botones de al menos 44 px
+   ===================================================================== */
+@media (max-width:760px){
+  header{padding:10px 16px;gap:10px}
+  .btn-menu{display:inline-flex}
+  .lateral{display:none}
+  .lateral.abierto{display:flex;position:static;height:auto;flex-basis:100%;max-width:none;animation:entrar .18s ease both}
+  .btn,.chip,.filtros select,.buscador,.campo input,.campo select{min-height:44px}
+  .btn.sm{min-height:44px;padding:8px 12px}
+  .lateral a{min-height:44px}
+  .toast-zona{top:auto;bottom:16px;left:16px;right:16px;max-width:none}
+  .grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px}
+  .prod .foto{height:150px}.prod .foto img{max-height:138px}
+  .prod .precio{font-size:1.4rem}
+  .migas [aria-current]{max-width:22ch}
+}
+@media (prefers-reduced-motion:reduce){
+  .contenido > *,.toast,.toast.saliendo,.lateral.abierto{animation:none}
+  .btn,.card.prod,.chip,.lateral a{transition:none}
+  .btn:hover:not(:disabled),.card.prod:hover{transform:none}
+}
+
+/* Faltantes de caja: campana del Administrador, número en el menú y franja de aviso */
+.campana-noti{position:relative;display:inline-grid;place-items:center;width:44px;height:44px;margin-left:auto;border:2px solid var(--k);border-radius:4px;background:#fff;color:var(--k);text-decoration:none;transition:transform .15s,box-shadow .15s}
+.campana-noti + .rol{margin-left:0}
+.campana-noti:hover{transform:translateY(-1px);box-shadow:2px 2px 0 var(--k)}
+.campana-noti.hay{background:var(--bad);color:#fff;animation:campanaSuena .6s ease 2}
+.noti-n{position:absolute;top:-8px;right:-8px;min-width:22px;height:22px;padding:0 5px;border:2px solid var(--k);border-radius:11px;background:var(--y);color:var(--k);font-size:.75rem;font-weight:800;line-height:18px;text-align:center}
+.menu-n{margin-left:auto;min-width:22px;padding:0 6px;border-radius:11px;background:var(--bad);color:#fff;font-size:.75rem;line-height:22px;text-align:center}
+.banda-faltante{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:0 0 18px;padding:12px 14px;border:2px solid var(--bad);border-left-width:8px;border-radius:6px;background:var(--bad-bg)}
+.banda-faltante > .ico{color:var(--bad);flex:none}
+.banda-faltante span{flex:1 1 260px}
+.toast-faltante{align-items:center}
+.toast-faltante .btn{flex:none}
+tr.fila-nueva td{background:var(--bad-bg)}
+@keyframes campanaSuena{25%{transform:rotate(-12deg)}75%{transform:rotate(12deg)}}
+@media (prefers-reduced-motion: reduce){.campana-noti.hay{animation:none}}
+
+/* Preguntar o reportar al cajero por un faltante (Administrador) y responder (cajero) */
+tr.fila-consulta td{padding-top:0;border-top:0}
+.hilo{display:grid;gap:6px;margin:4px 0 10px;max-width:760px}
+.hilo-msg{margin:0;padding:8px 12px;border:2px solid var(--line);border-radius:6px;background:#fff;font-size:.9rem}
+.hilo-msg.respuesta{margin-left:28px;border-color:var(--ok);background:var(--ok-bg)}
+.hilo-msg .tag{margin-right:6px}
+.hilo-espera{display:flex;align-items:center;gap:6px;margin:0 0 0 28px;color:var(--muted);font-size:.85rem;font-style:italic}
+.consultar summary{list-style:none;display:inline-flex;cursor:pointer}
+.consultar summary::-webkit-details-marker{display:none}
+.consultar[open] summary{background:var(--k);color:var(--y)}
+.consultar-form{max-width:760px;margin-top:10px;padding:14px;border:2px solid var(--k);border-radius:6px;background:#fff}
+.consultar-form fieldset{border:0;padding:0;margin:0 0 10px}
+.consultar-form legend{font-weight:800;margin-bottom:6px}
+.opcion-tipo{display:flex;align-items:center;gap:8px;min-height:36px;font-weight:400;cursor:pointer}
+.consultar-form textarea,.consulta textarea{width:100%;font:inherit;padding:10px 12px;border:2px solid var(--k);border-radius:4px;resize:vertical}
+.sugerencias{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.sugerencias .chip{font-size:.75rem;text-transform:none;font-weight:600;padding:6px 10px}
+.consultas{display:grid;gap:16px;max-width:820px}
+.consulta.pendiente{border-color:var(--bad);box-shadow:4px 4px 0 var(--bad)}
+.consulta-cab{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.consulta-fecha{margin-left:auto;color:var(--muted);font-size:.85rem}
+.consulta-caja{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:0 0 10px;font-size:.9rem}
+.consulta-msg{margin:0 0 12px;padding:12px 14px;border-left:5px solid var(--k);background:var(--y-soft);border-radius:0 6px 6px 0}
+.consulta-msg.respuesta{border-left-color:var(--ok);background:var(--ok-bg);margin-left:24px}
+.consulta-msg cite{display:block;margin-top:6px;color:var(--muted);font-size:.82rem;font-style:normal}
+.msg.warn{background:var(--warn-bg);color:var(--warn);border-color:var(--warn)}
+@media (max-width:760px){.hilo-msg.respuesta,.hilo-espera,.consulta-msg.respuesta{margin-left:12px}}

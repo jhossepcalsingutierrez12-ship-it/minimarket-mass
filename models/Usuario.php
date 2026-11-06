@@ -65,6 +65,10 @@ class Usuario
     // El administrador ve las 3 tiendas; los demás solo la suya
     public function puedeVerTodasLasTiendas(): bool { return false; }
 
+    // Funciones de control del administrador
+    public function puedeVerAlertas(): bool { return false; }          // alertas de inventario
+    public function puedeVerHistorial(): bool { return false; }        // historial de actividades
+
     // CK_MER_6: quien autoriza una merma no puede ser quien la registró
     public function autorizaMermaDe(int $idRegistra): bool
     {

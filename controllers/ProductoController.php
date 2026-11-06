@@ -37,7 +37,18 @@ class ProductoController extends Controlador
         $this->exigir($this->usuario->puedeAdministrarProductos());
         $subcategorias = $this->repo->subcategoriasPorPrefijo();
         $marcas = $this->repo->marcas();
-        $this->vista('productos/agregar', compact('errores', 'form', 'subcategorias', 'marcas'));
+        // Productos nuevos que todavía no están en el catálogo, con el ID de su marca y subcategoría
+        $sugeridos = [];
+        foreach (ProductoRepository::SUGERIDOS as $s) {
+            if ($this->repo->existeSku($s['sku'])) {
+                continue;
+            }
+            $s['categoria'] = (string) (array_search($s['subcategoria'], $subcategorias[substr($s['sku'], 0, 3)] ?? [], true) ?: '');
+            $s['marca_id'] = (string) (array_search($s['marca'], $marcas, true) ?: '');
+            $s['foto'] = is_file(__DIR__ . '/../public/img/productos/' . $s['sku'] . '.jpg') ? 'img/productos/' . $s['sku'] . '.jpg' : '';
+            $sugeridos[] = $s;
+        }
+        $this->vista('productos/agregar', compact('errores', 'form', 'subcategorias', 'marcas', 'sugeridos'));
     }
 
     public function agregar(): void
@@ -98,6 +109,7 @@ class ProductoController extends Controlador
         if ($foto !== null) {
             $this->guardarFoto($foto, $f['sku']);
         }
+        Historial::anotar($this->usuario, 'AGREGAR_PRODUCTO', "{$f['sku']} · {$f['nombre']} · precio " . sol($precio) . " · stock inicial $stock");
         $this->aviso('ok', "Producto {$f['sku']} agregado al catálogo." . ($f['perecible'] === 'S' ? ' Es perecible: registra su lote en «Lotes y vencimientos».' : ''));
         $this->redirigir('listar');
     }
@@ -143,6 +155,24 @@ class ProductoController extends Controlador
         if ($foto !== null) {
             $this->guardarFoto($foto, $producto->getCodigoSku());
         }
+        // Historial: si cambió el precio se anota aparte, con el precio de antes y el nuevo
+        $antes = $producto->getPrecioVenta();
+        if (abs($antes - $precio) >= 0.005) {
+            Historial::anotar($this->usuario, 'CAMBIAR_PRECIO', "{$producto->getCodigoSku()} · {$form['nombre']}: " . sol($antes) . ' → ' . sol($precio));
+        }
+        $otros = [];
+        if ($form['nombre'] !== $producto->getNombre()) {
+            $otros[] = "nombre «{$producto->getNombre()}» → «{$form['nombre']}»";
+        }
+        if ($minimo !== $producto->getStockMinimo()) {
+            $otros[] = "stock mínimo {$producto->getStockMinimo()} → $minimo";
+        }
+        if ($foto !== null) {
+            $otros[] = 'foto nueva';
+        }
+        if ($otros) {
+            Historial::anotar($this->usuario, 'EDITAR_PRODUCTO', "{$producto->getCodigoSku()}: " . implode(', ', $otros));
+        }
         $this->aviso('ok', "Cambios de {$producto->getCodigoSku()} guardados.");
         $this->redirigir('listar');
     }
@@ -169,6 +199,7 @@ class ProductoController extends Controlador
         if ($estado === 'I') {
             unset($_SESSION['carrito'][$producto->getIdProducto()]);
         }
+        Historial::anotar($this->usuario, $estado === 'I' ? 'BAJA_PRODUCTO' : 'REACTIVAR_PRODUCTO', "{$producto->getCodigoSku()} · {$producto->getNombre()}");
         $this->aviso('ok', $estado === 'I'
             ? "{$producto->getCodigoSku()} dado de baja. Aparece abajo en «Dados de baja»."
             : "{$producto->getCodigoSku()} vuelve a estar activo.");

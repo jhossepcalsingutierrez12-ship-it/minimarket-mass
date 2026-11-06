@@ -28,6 +28,9 @@ Requisitos: Laragon con MySQL en el puerto **3307** y PHP 8.
    mysql -u root -P 3307 minimarket_mass -e "source database/tiendas.sql"
    mysql -u root -P 3307 minimarket_mass -e "source database/cajas.sql"
    mysql -u root -P 3307 minimarket_mass -e "source database/cajeros.sql"
+   mysql -u root -P 3307 --default-character-set=utf8mb4 minimarket_mass -e "source database/admin.sql"
+   mysql -u root -P 3307 --default-character-set=utf8mb4 minimarket_mass -e "source database/productos_nuevos.sql"
+   mysql -u root -P 3307 --default-character-set=utf8mb4 minimarket_mass -e "source database/ejemplos_tiendas.sql"
    ```
 
    - `schema.sql` crea la base `minimarket_mass` y sus 20 tablas.
@@ -38,6 +41,9 @@ Requisitos: Laragon con MySQL en el puerto **3307** y PHP 8.
    - `tiendas.sql` deja las 3 tiendas: Cayma, Cerro Colorado y Yanahuara.
    - `cajas.sql` deja 3 cajas activas en cada tienda.
    - `cajeros.sql` agrega un segundo cajero (`jccama`) para probar 2 cajas abiertas.
+   - `productos_nuevos.sql` agrega las marcas y subcategorías de los 9 productos nuevos, baja el precio del arroz y deja dos lotes recibidos de ejemplo.
+   - `ejemplos_tiendas.sql` carga ventas de ejemplo en las 3 tiendas (23 de octubre al 5 de noviembre), cajas abiertas con dinero, una merma y actividades en el historial.
+   - `admin.sql` crea HISTORIAL (historial de actividades). Proveedores y compras se quitaron porque no están en el modelo.
    - `cuadre.sql` agrega a LOTE la fecha en que llegó la mercadería (para el cuadre de stock del día).
      **Antes de correrlo cambia los 3 correos** que trae por correos reales.
    - `consultas.sql` tiene consultas de ejemplo (opcional).
@@ -58,7 +64,7 @@ Luego abre http://localhost:8000 en el navegador.
 
 | Usuario | Contraseña | Rol |
 |---|---|---|
-| `jmamani` | `Admin#2026` | Administrador: controla (volumen de ventas, mermas, incidentes, cuadre de stock, dinero en cajas), productos y personal |
+| `jmamani` | `Admin#2026` | Administrador: controla (alertas de inventario, reportes con filtros, mermas, incidentes, cuadre de stock, dinero en cajas, historial), proveedores y compras, productos y personal |
 | `chuaman` | `Super#2026` | Supervisor: cierra las cajas, anula ventas, lotes, autoriza mermas |
 | `rquispe` | `Cajero#2026` | Cajero: abre su caja, vende, registra mermas e incidentes |
 | `jccama` | `Jorge#2026` | Cajero (Jorge Ccama): igual que rquispe, para abrir una segunda caja |
@@ -92,4 +98,7 @@ Si `config/correo.php` no existe, el código se muestra en pantalla (modo simula
 | Incidentes (robos, sismos…) | reporta | reporta y da seguimiento | ve los de las 3 tiendas |
 | Cuadre de stock del día | | | ✔ |
 | Productos (agregar, editar, baja), PDF | | | ✔ |
-| Tiendas y personal, reportes | | | ✔ |
+| Tiendas y personal | | | ✔ |
+| Alertas de inventario (agotados, poco stock, reposición recomendada, por vencer) | | | ✔ |
+| Reportes con filtros (día, semana, mes, tiendas, ganancias, menor movimiento) | | | ✔ |
+| Historial de actividades (quién agregó, cambió precios, anuló, registró mermas…) | | | ✔ |

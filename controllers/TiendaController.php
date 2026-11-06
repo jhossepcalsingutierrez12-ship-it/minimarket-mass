@@ -89,13 +89,36 @@ class TiendaController extends Controlador
         $this->vista('tiendas/cuadre', ['filas' => $this->reportes->cuadreStockHoy()]);
     }
 
+    // 3. Reportes del mes: el administrador elige el mes y la tienda (o las 3)
     public function reportes(): void
     {
         $this->exigir($this->usuario->puedeVerReportes());
+        $meses = $this->reportes->meses();                     // ['2026-11' => 'Noviembre 2026', ...] del más nuevo al más viejo
+        $mes = (string) ($_GET['mes'] ?? '');
+        if (!isset($meses[$mes])) {
+            $mes = array_key_first($meses);                    // por defecto, el mes actual
+        }
+        $tiendas = $this->tiendas->tiendas();
+        $tienda = self::entero('tienda', $_GET);
+        if ($tienda !== null && !in_array($tienda, array_map('intval', array_column($tiendas, 'ID_TIENDA')), true)) {
+            $tienda = null;
+        }
+        $desde = $mes . '-01';
+        $f = ['desde' => $desde, 'hasta' => date('Y-m-t', strtotime($desde)), 'tienda' => $tienda];
+        // Gráfico: los últimos 6 meses hasta el elegido, con el mismo filtro de tienda
+        $seis = ['desde' => date('Y-m-01', strtotime($desde . ' -5 months')), 'hasta' => $f['hasta'], 'tienda' => $tienda];
+        $productos = $this->reportes->porProducto($f);
+        $menor = $productos;
+        usort($menor, fn($a, $b) => $a['UNIDADES'] <=> $b['UNIDADES'] ?: $b['STOCK_ACTUAL'] <=> $a['STOCK_ACTUAL']);
         $this->vista('tiendas/reportes', [
-            'resumen' => $this->reportes->resumen(), 'porTienda' => $this->reportes->ventasPorTienda(),
-            'metodos' => $this->reportes->metodosDePago(), 'top' => $this->reportes->masVendidos(),
-            'reponer' => array_filter($this->productos->obtenerTodos(), fn(Producto $p) => $p->estadoStock() !== 'Normal'),
+            'f' => $f + ['mes' => $mes], 'meses' => $meses, 'tiendas' => $tiendas,
+            'resumen' => $this->reportes->resumen($f),
+            'serie' => $this->reportes->ventasPorPeriodo($seis, 'mes'),
+            'comparacion' => $this->reportes->comparacionTiendas($f),
+            'metodos' => $this->reportes->metodosDePago($f),
+            'top' => array_slice(array_filter($productos, fn($x) => $x['UNIDADES'] > 0), 0, 6),
+            'menor' => array_slice($menor, 0, 6),
+            'productos' => $productos,
         ]);
     }
 }

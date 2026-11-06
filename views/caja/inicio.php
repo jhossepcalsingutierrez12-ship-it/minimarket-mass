@@ -1,17 +1,30 @@
 <?php
 /**
- * Al entrar, el cajero abre su caja: tienda, caja, turno y monto.
- * @var array $tiendas @var array $libres @var array $turnos @var array $errores @var array $form @var Usuario $u
+ * Al entrar, el cajero abre su caja: elige la tienda, una de sus 3 cajas, el turno y el monto.
+ * @var array $tiendas @var array $libres @var array $cajas @var array $turnos @var array $abiertasTienda
+ * @var array $errores @var array $form @var Usuario $u
  */
 $titulo = 'Abre tu caja';
 $seccion = 'caja';
 require __DIR__ . '/../partials/cabecera.php';
+$idsLibres = array_map(fn($c) => (int) $c['ID_CAJA'], $libres);
+// Caja marcada: la que eligió antes o la primera libre de la tienda marcada
+$cajaSel = $form['caja'] ?? '';
+if ($cajaSel === '') {
+    foreach ($libres as $c) {
+        if ((string) $c['ID_TIENDA'] === $form['tienda']) {
+            $cajaSel = (string) $c['ID_CAJA'];
+            break;
+        }
+    }
+}
 ?>
 <h1>Abre tu caja</h1>
-<p class="sub">Hola, <?= e(explode(' ', $u->getNombreCompleto())[0]) ?>. Para empezar a vender, di en qué tienda abres tu caja y con cuánto sencillo empiezas (R7: sin caja abierta no hay venta).</p>
+<p class="sub">Hola, <?= e(explode(' ', $u->getNombreCompleto())[0]) ?>. Para empezar a vender, elige la tienda, una de sus 3 cajas y con cuánto sencillo empiezas
+    (R7: sin caja abierta no hay venta).</p>
 <?= aviso() ?>
 
-<form class="card form" method="post" action="?accion=caja_abrir" novalidate style="max-width:820px">
+<form class="card form" method="post" action="?accion=caja_abrir" novalidate style="max-width:860px" id="fInicioCaja">
     <input type="hidden" name="csrf" value="<?= e(AuthController::token()) ?>">
     <input type="hidden" name="desde" value="inicio">
 
@@ -24,29 +37,32 @@ require __DIR__ . '/../partials/cabecera.php';
                     <span>
                         <b><?= e(str_replace('Mass ', '', $t['NOMBRE'])) ?></b>
                         <small><?= e($t['DIRECCION'] . ', ' . $t['DISTRITO']) ?></small>
-                        <small><?= $libresT ? $libresT . ' caja' . ($libresT === 1 ? '' : 's') . ' libre' . ($libresT === 1 ? '' : 's') : 'Sin cajas libres' ?></small>
+                        <small><?= $libresT ? $libresT . ' de 3 cajas libres' : 'Las 3 cajas están ocupadas' ?></small>
                     </span>
                 </label>
             <?php endforeach; ?>
         </div>
     </fieldset>
 
-    <div class="cols">
-        <div class="<?= claseCampo($errores, 'caja') ?>">
-            <label for="caja">2. Caja</label>
-            <select id="caja" name="caja">
-                <?php foreach ($tiendas as $t): ?>
-                    <optgroup label="<?= e($t['NOMBRE']) ?>" data-tienda="<?= (int) $t['ID_TIENDA'] ?>">
-                        <?php foreach ($libres as $c): if ((int) $c['ID_TIENDA'] !== (int) $t['ID_TIENDA']) continue; ?>
-                            <option value="<?= (int) $c['ID_CAJA'] ?>" data-tienda="<?= (int) $c['ID_TIENDA'] ?>" <?= ($form['caja'] ?? '') === (string) $c['ID_CAJA'] ? 'selected' : '' ?>>
-                                Caja N° <?= (int) $c['NUMERO_CAJA'] ?> · <?= e($c['ZONA'] ?? 'Zona de cajas') ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </optgroup>
-                <?php endforeach; ?>
-            </select>
-            <?= error($errores, 'caja') ?>
+    <fieldset class="elegir-tienda" style="margin-top:16px">
+        <legend>2. Elige tu caja</legend>
+        <div class="tiendas-opciones cajas-opciones">
+            <?php foreach ($cajas as $c): $libre = in_array((int) $c['ID_CAJA'], $idsLibres, true); ?>
+                <label class="opcion-tienda opcion-caja" data-tienda="<?= (int) $c['ID_TIENDA'] ?>">
+                    <input type="radio" name="caja" value="<?= (int) $c['ID_CAJA'] ?>" <?= $cajaSel === (string) $c['ID_CAJA'] && $libre ? 'checked' : '' ?> <?= $libre ? '' : 'disabled' ?>>
+                    <span>
+                        <b>Caja N° <?= (int) $c['NUMERO_CAJA'] ?></b>
+                        <small><?= e(str_replace('Mass ', '', $c['TIENDA'])) ?> · <?= e($c['ZONA'] ?? 'Zona de cajas') ?></small>
+                        <small><?= $c['ESTADO_CAJA'] !== 'A' ? 'Fuera de servicio'
+                            : ($c['ID_SESION'] ? 'Ocupada · ' . e(nombreCorto($c['CAJERO_NOMBRES'], $c['CAJERO_APELLIDOS'])) : 'Libre') ?></small>
+                    </span>
+                </label>
+            <?php endforeach; ?>
         </div>
+        <?= error($errores, 'caja') ?>
+    </fieldset>
+
+    <div class="cols" style="margin-top:16px">
         <div class="<?= claseCampo($errores, 'turno') ?>">
             <label for="turno">3. Turno</label>
             <select id="turno" name="turno">

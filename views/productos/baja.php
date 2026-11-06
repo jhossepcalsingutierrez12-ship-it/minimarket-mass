@@ -4,7 +4,7 @@ $titulo = 'Dar de baja';
 $seccion = 'listar';
 require __DIR__ . '/../partials/cabecera.php';
 ?>
-<a class="volver" href="?accion=listar">← Volver al catálogo</a>
+<?= migas([['Catálogo', '?accion=listar'], [$producto->getNombre(), '?accion=ver&sku=' . urlencode($producto->getCodigoSku())], ['Dar de baja', null]]) ?>
 <h1>Dar de baja</h1>
 <p class="sub"></p>
 <div class="baja">
