@@ -63,6 +63,19 @@ class ReporteRepository extends Repositorio
         ];
     }
 
+    /** Meses que se pueden ver: desde el de la primera venta hasta el actual, del más nuevo al más viejo */
+    public function meses(): array
+    {
+        $nombres = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Setiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+        $primera = $this->pdo->query('SELECT MIN(FECHA_HORA) FROM VENTA')->fetchColumn();
+        $inicio = strtotime(date('Y-m-01', $primera ? strtotime((string) $primera) : time()));
+        $r = [];
+        for ($m = strtotime(date('Y-m-01')); $m >= $inicio && count($r) < 24; $m = strtotime('-1 month', $m)) {
+            $r[date('Y-m', $m)] = $nombres[(int) date('n', $m) - 1] . ' ' . date('Y', $m);
+        }
+        return $r;
+    }
+
     /**
      * Ventas agrupadas por día, semana o mes (para el gráfico).
      * @return array<string, array{total: float, ventas: int}> [etiqueta => datos], en orden de fecha

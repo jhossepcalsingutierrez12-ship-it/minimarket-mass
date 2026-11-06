@@ -2,7 +2,7 @@
 -- Para que Reportes, Caja (dinero en cada caja) e Historial muestren movimiento en Cayma, Cerro Colorado y Yanahuara:
 --   · 22/10: reposición de mercadería (4 compras a los proveedores)
 --   · 23/10 al 05/11: ventas todos los días en las 3 tiendas, una anulación, una merma y cierres con faltante y sobrante
---   · Ahora: una caja abierta con ventas en Cerro Colorado y otra en Yanahuara (el administrador ve cuánto dinero tienen)
+--   · Ahora: una caja abierta con ventas en cada tienda: Cayma, Cerro Colorado y Yanahuara (el administrador ve cuánto dinero tienen)
 -- Correr después de admin.sql y productos_nuevos.sql. Se puede volver a correr: lo que ya se cargó no se repite.
 --   mysql -u root -P 3306 --default-character-set=utf8mb4 minimarket_mass -e "source database/ejemplos_tiendas.sql"
 -- Todo pasa por las reglas del sistema: se vende con la caja ABIERTA (trigger R7), el stock baja solo (R5),
@@ -491,7 +491,26 @@ BEGIN
     CALL ej_historial(3, '2026-11-05 15:06:00', 'CERRAR_CAJA', 'Cerró Mass Cerro Colorado · Caja N° 2 · sistema S/ 172.30 · contado S/ 173.30 · diferencia S/ 1.00 (sobrante)');
   END IF;
 
-  -- C. Cajas abiertas ahora en Cerro Colorado (Milagros) y Yanahuara (Kevin): el administrador ve su dinero en «Caja»
+  -- C. Cajas abiertas ahora en Cayma (Rosa), Cerro Colorado (Milagros) y Yanahuara (Kevin): el administrador ve su dinero en «Caja»
+  IF (SELECT COUNT(*) FROM SESION_CAJA WHERE ESTADO = 'ABIERTA' AND (ID_CAJA = 1 OR ID_CAJERO = 5)) = 0
+     AND (SELECT COUNT(*) FROM SESION_CAJA s JOIN CAJA c ON c.ID_CAJA = s.ID_CAJA WHERE s.ESTADO = 'ABIERTA' AND c.ID_TIENDA = 1) < 2 THEN
+    -- Mass Cayma · Caja N° 1 · Rosa Quispe
+    CALL ej_sesion(1, 5, IF(HOUR(NOW()) < 15, 1, 2), NULL, NOW() - INTERVAL 210 MINUTE, 200.00);
+    CALL ej_venta('BOLETA', NULL, NOW() - INTERVAL 185 MINUTE, 40.90, 1, 50.00);
+    CALL ej_detalle('ABA-0001', 1, 19.90);
+    CALL ej_detalle('LAC-0001', 5, 4.20);
+    CALL ej_venta('BOLETA', NULL, NOW() - INTERVAL 140 MINUTE, 23.80, 4, NULL);
+    CALL ej_detalle('ABA-0003', 2, 11.90);
+    CALL ej_venta('FACTURA', 3, NOW() - INTERVAL 100 MINUTE, 77.70, 1, 100.00);
+    CALL ej_detalle('ABA-0001', 3, 19.90);
+    CALL ej_detalle('ABA-0002', 4, 4.50);
+    CALL ej_venta('BOLETA', NULL, NOW() - INTERVAL 55 MINUTE, 16.60, 1, 20.00);
+    CALL ej_detalle('BEB-0002', 3, 3.80);
+    CALL ej_detalle('ABA-0004', 1, 5.20);
+    CALL ej_venta('BOLETA', NULL, NOW() - INTERVAL 15 MINUTE, 29.90, 2, NULL);
+    CALL ej_detalle('LIM-0001', 1, 29.90);
+    CALL ej_historial(5, NOW() - INTERVAL 210 MINUTE, 'ABRIR_CAJA', 'Abrió Mass Cayma · Caja N° 1 con S/ 200.00');
+  END IF;
   IF (SELECT COUNT(*) FROM SESION_CAJA WHERE ESTADO = 'ABIERTA' AND (ID_CAJA = 3 OR ID_CAJERO = 7)) = 0
      AND (SELECT COUNT(*) FROM SESION_CAJA s JOIN CAJA c ON c.ID_CAJA = s.ID_CAJA WHERE s.ESTADO = 'ABIERTA' AND c.ID_TIENDA = 2) < 2 THEN
     -- Mass Cerro Colorado · Caja N° 1 · Milagros Pari

@@ -252,14 +252,6 @@ if (fCompra) {
   calcular();
 }
 
-// 17. Reportes: las fechas "desde / hasta" solo se muestran al elegir "Elegir fechas"
-const periodo = document.getElementById('periodo');
-if (periodo) {
-  const verRango = () => document.querySelectorAll('.filtros-reporte .rango').forEach(l => { l.hidden = periodo.value !== 'rango'; });
-  periodo.addEventListener('change', verRango);
-  verRango();
-}
-
 // 18. Agregar producto: al elegir un producto nuevo de la lista, el formulario se llena solo
 const sugerido = document.getElementById('sugerido');
 if (sugerido) {
