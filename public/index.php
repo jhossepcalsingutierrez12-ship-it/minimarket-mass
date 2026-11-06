@@ -128,7 +128,6 @@ $rutas = [
 
     // Funciones del Administrador
     'alertas'      => [fn() => $admin->alertas(), null],
-    'cierres'      => [fn() => $admin->cierres(), null],
     'proveedores'  => [fn() => $admin->proveedores(), fn() => $admin->crearProveedor()],
     'estado_proveedor' => [null, fn() => $admin->estadoProveedor()],
     'compras'      => [fn() => $admin->compras(), fn() => $admin->registrarCompra()],

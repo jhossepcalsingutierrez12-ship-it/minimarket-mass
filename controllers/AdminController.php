@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 /**
  * Funciones de control del Administrador:
- * alertas de inventario, revisión de cierres de caja (sin cerrar), proveedores y compras,
+ * alertas de inventario, proveedores y compras,
  * e historial de actividades. Los reportes con filtros están en TiendaController.
  */
 class AdminController extends Controlador
@@ -26,19 +26,6 @@ class AdminController extends Controlador
     {
         $this->exigir($this->usuario->puedeVerAlertas());
         $this->vista('inventario/alertas', ['a' => $this->reportes->alertasInventario()]);
-    }
-
-    // 2. Cierres de caja: el administrador los revisa, no cierra cajas
-    public function cierres(): void
-    {
-        $this->exigir($this->usuario->puedeRevisarCierres());
-        $f = [
-            'tienda' => self::entero('tienda', $_GET),
-            'desde' => self::fechaGet('desde'),
-            'hasta' => self::fechaGet('hasta'),
-            'diferencia' => ($_GET['diferencia'] ?? '') === '1',
-        ];
-        $this->vista('caja/cierres', ['lista' => $this->cajas->cierres($f), 'f' => $f, 'tiendas' => $this->tiendas->tiendas()]);
     }
 
     // 4. Proveedores

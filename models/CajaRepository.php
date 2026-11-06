@@ -168,38 +168,6 @@ class CajaRepository extends Repositorio
         });
     }
 
-    /**
-     * Cierres de caja para que el Administrador los revise (no cierra nada):
-     * cuánto debía haber (sistema), cuánto se contó, la diferencia y quién cerró.
-     * Filtros opcionales: tienda, desde, hasta (Y-m-d) y solo los que no cuadraron.
-     */
-    public function cierres(array $f = []): array
-    {
-        $donde = ["s.ESTADO = 'CERRADA'"];
-        $p = [];
-        if (!empty($f['tienda'])) {
-            $donde[] = 'c.ID_TIENDA = :tienda';
-            $p[':tienda'] = (int) $f['tienda'];
-        }
-        if (!empty($f['desde'])) {
-            $donde[] = 's.FECHA_CIERRE >= :desde';
-            $p[':desde'] = $f['desde'] . ' 00:00:00';
-        }
-        if (!empty($f['hasta'])) {
-            $donde[] = 's.FECHA_CIERRE <= :hasta';
-            $p[':hasta'] = $f['hasta'] . ' 23:59:59';
-        }
-        if (!empty($f['diferencia'])) {
-            $donde[] = 's.DIFERENCIA <> 0';
-        }
-        $stmt = $this->pdo->prepare(str_replace('FROM SESION_CAJA s', ', sp.NOMBRES AS CERRO_NOMBRES, sp.APELLIDOS AS CERRO_APELLIDOS
-        FROM SESION_CAJA s', self::SELECT_SESION) . '
-            LEFT JOIN EMPLEADO sp ON sp.ID_EMPLEADO = s.ID_SUPERVISOR
-            WHERE ' . implode(' AND ', $donde) . ' ORDER BY s.FECHA_CIERRE DESC, s.ID_SESION DESC');
-        $stmt->execute($p);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
-
     /** @return array{0: string, 1: array} condición WHERE según lo que el rol puede ver */
     private static function filtro(Usuario $u): array
     {

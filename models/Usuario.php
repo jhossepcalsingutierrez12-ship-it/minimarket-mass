@@ -67,7 +67,6 @@ class Usuario
 
     // Funciones de control del administrador
     public function puedeVerAlertas(): bool { return false; }          // alertas de inventario
-    public function puedeRevisarCierres(): bool { return false; }      // revisar cierres de caja (sin cerrar)
     public function puedeGestionarProveedores(): bool { return false; } // proveedores y compras
     public function puedeVerHistorial(): bool { return false; }        // historial de actividades
 

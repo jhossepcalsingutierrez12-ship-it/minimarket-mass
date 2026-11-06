@@ -50,7 +50,6 @@ $menu = [
     'Administración' => [
         ['tiendas', 'Tiendas y personal', 'tienda', $u->puedeVerPersonal()],
         ['reportes', 'Reportes', 'chart', $u->puedeVerReportes()],
-        ['cierres', 'Cierres de caja', 'cierre', $u->puedeRevisarCierres()],
         ['historial', 'Historial de actividades', 'reloj', $u->puedeVerHistorial()],
     ],
 ];
