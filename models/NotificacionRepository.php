@@ -10,6 +10,9 @@ require_once __DIR__ . '/Repositorio.php';
  *  - el faltante sale de SESION_CAJA (lo guarda el Supervisor al cerrar la caja);
  *  - «ya lo vi» se guarda en el HISTORIAL como REVISAR_FALTANTES: lo nuevo es lo cerrado después de esa fecha.
  * Además, al cerrar con faltante se manda un correo a los administradores (si existe config/correo.php).
+ *
+ * El Administrador puede PREGUNTAR al cajero qué pasó con el dinero o REPORTAR el faltante
+ * (tabla CONSULTA_CAJA de database/consultas_caja.sql); el cajero lo ve al entrar y responde.
  */
 class NotificacionRepository extends Repositorio
 {
@@ -70,12 +73,148 @@ class NotificacionRepository extends Repositorio
         $stmt = $this->pdo->prepare(self::SELECT_FALTANTE . ' AND s.FECHA_CIERRE > :desde ORDER BY s.FECHA_CIERRE DESC, s.ID_SESION DESC');
         $stmt->execute([':desde' => $desde]);
         $lista = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $respuestas = $this->respuestasNuevas($idAdmin, $desde);
         return [
-            'n' => count($lista),
+            'n' => count($lista) + count($respuestas),
+            'faltantes' => count($lista),
             'total' => -array_sum(array_map(fn($f) => (float) $f['DIFERENCIA'], $lista)),
             'ultimo' => $lista[0] ?? null,
+            'respuestas' => $respuestas,
             'desde' => $desde,
         ];
+    }
+
+    /* ============ Preguntas y reportes al cajero (tabla CONSULTA_CAJA) ============ */
+
+    public const TIPOS = ['PREGUNTA' => 'Pregunta', 'REPORTE' => 'Reporte'];
+
+    private const SELECT_CONSULTA = '
+        SELECT q.*, a.NOMBRES AS ADMIN_NOMBRES, a.APELLIDOS AS ADMIN_APELLIDOS,
+               e.NOMBRES AS CAJERO_NOMBRES, e.APELLIDOS AS CAJERO_APELLIDOS,
+               s.FECHA_CIERRE, s.EFECTIVO_SISTEMA, s.EFECTIVO_CONTADO, s.DIFERENCIA, c.NUMERO_CAJA, t.NOMBRE AS TIENDA
+        FROM CONSULTA_CAJA q
+        JOIN EMPLEADO a    ON a.ID_EMPLEADO = q.ID_ADMIN
+        JOIN EMPLEADO e    ON e.ID_EMPLEADO = q.ID_CAJERO
+        JOIN SESION_CAJA s ON s.ID_SESION = q.ID_SESION
+        JOIN CAJA c        ON c.ID_CAJA = s.ID_CAJA
+        JOIN TIENDA t      ON t.ID_TIENDA = c.ID_TIENDA';
+
+    /** ¿Ya se corrió database/consultas_caja.sql? */
+    public function hayConsultas(): bool
+    {
+        try {
+            $this->pdo->query('SELECT 1 FROM CONSULTA_CAJA LIMIT 1');
+            return true;
+        } catch (PDOException) {
+            return false;
+        }
+    }
+
+    /** Preguntas y reportes de esas sesiones: [ID_SESION => [consultas...]] */
+    public function consultasDeSesiones(array $idsSesion): array
+    {
+        $ids = array_values(array_unique(array_map('intval', $idsSesion)));
+        if (!$ids || !$this->hayConsultas()) {
+            return [];
+        }
+        $marcas = implode(',', array_fill(0, count($ids), '?'));
+        $stmt = $this->pdo->prepare(self::SELECT_CONSULTA . " WHERE q.ID_SESION IN ($marcas) ORDER BY q.FECHA_ENVIO, q.ID_CONSULTA");
+        $stmt->execute($ids);
+        $r = [];
+        foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $q) {
+            $r[(int) $q['ID_SESION']][] = $q;
+        }
+        return $r;
+    }
+
+    /** El Administrador pregunta o reporta al cajero de una caja cerrada con faltante */
+    public function enviarConsulta(Usuario $admin, int $idSesion, string $tipo, string $mensaje): array
+    {
+        return $this->enTransaccion(function () use ($admin, $idSesion, $tipo, $mensaje): array {
+            $f = $this->faltante($idSesion);
+            if ($f === null) {
+                throw new DomainException('Esa caja no se cerró con faltante.');
+            }
+            $stmt = $this->pdo->prepare('SELECT ID_CAJERO FROM SESION_CAJA WHERE ID_SESION = :s');
+            $stmt->execute([':s' => $idSesion]);
+            $cajero = (int) $stmt->fetchColumn();
+            $id = $this->siguienteId('CONSULTA_CAJA', 'ID_CONSULTA');
+            $this->pdo->prepare("
+                INSERT INTO CONSULTA_CAJA (ID_CONSULTA, ID_SESION, ID_ADMIN, ID_CAJERO, TIPO, MENSAJE, FECHA_ENVIO, ESTADO)
+                VALUES (:id, :s, :a, :c, :t, :m, :f, 'PENDIENTE')")
+                ->execute([':id' => $id, ':s' => $idSesion, ':a' => $admin->getIdEmpleado(), ':c' => $cajero,
+                           ':t' => $tipo, ':m' => $mensaje, ':f' => self::ahora()]);
+            return $f + ['ID_CAJERO' => $cajero, 'ID_CONSULTA' => $id];
+        });
+    }
+
+    /** Lo que el Administrador le preguntó o reportó a este cajero (pendientes primero) */
+    public function consultasDelCajero(int $idCajero): array
+    {
+        if (!$this->hayConsultas()) {
+            return [];
+        }
+        $stmt = $this->pdo->prepare(self::SELECT_CONSULTA . " WHERE q.ID_CAJERO = :c
+            ORDER BY q.ESTADO = 'PENDIENTE' DESC, q.FECHA_ENVIO DESC LIMIT 50");
+        $stmt->execute([':c' => $idCajero]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function pendientesDelCajero(int $idCajero): int
+    {
+        try {
+            $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM CONSULTA_CAJA WHERE ID_CAJERO = :c AND ESTADO = 'PENDIENTE'");
+            $stmt->execute([':c' => $idCajero]);
+            return (int) $stmt->fetchColumn();
+        } catch (PDOException) {
+            return 0;
+        }
+    }
+
+    /** El cajero responde (solo lo suyo y solo una vez) */
+    public function responder(Usuario $cajero, int $idConsulta, string $respuesta): array
+    {
+        return $this->enTransaccion(function () use ($cajero, $idConsulta, $respuesta): array {
+            $stmt = $this->pdo->prepare(self::SELECT_CONSULTA . ' WHERE q.ID_CONSULTA = :id');
+            $stmt->execute([':id' => $idConsulta]);
+            $q = $stmt->fetch(PDO::FETCH_ASSOC);
+            if (!$q || (int) $q['ID_CAJERO'] !== $cajero->getIdEmpleado()) {
+                throw new DomainException('Esa pregunta no es para ti.');
+            }
+            if ($q['ESTADO'] !== 'PENDIENTE') {
+                throw new DomainException('Ya respondiste esa pregunta.');
+            }
+            $this->pdo->prepare("UPDATE CONSULTA_CAJA SET RESPUESTA = :r, FECHA_RESPUESTA = :f, ESTADO = 'RESPONDIDA' WHERE ID_CONSULTA = :id")
+                ->execute([':r' => $respuesta, ':f' => self::ahora(), ':id' => $idConsulta]);
+            return $q;
+        });
+    }
+
+    /** Respuestas de los cajeros que este Administrador todavía no vio */
+    private function respuestasNuevas(int $idAdmin, string $desde): array
+    {
+        if (!$this->hayConsultas()) {
+            return [];
+        }
+        $stmt = $this->pdo->prepare(self::SELECT_CONSULTA . " WHERE q.ID_ADMIN = :a AND q.ESTADO = 'RESPONDIDA' AND q.FECHA_RESPUESTA > :d
+            ORDER BY q.FECHA_RESPUESTA DESC");
+        $stmt->execute([':a' => $idAdmin, ':d' => $desde]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /** Correo del empleado (para avisarle al cajero), '' si no tiene */
+    public function correoDe(int $idEmpleado): string
+    {
+        $stmt = $this->pdo->prepare('SELECT CORREO FROM EMPLEADO WHERE ID_EMPLEADO = :e');
+        $stmt->execute([':e' => $idEmpleado]);
+        $c = (string) $stmt->fetchColumn();
+        return filter_var($c, FILTER_VALIDATE_EMAIL) ? $c : '';
+    }
+
+    /** «Rosa Quispe respondió por el faltante de Mass Cayma · Caja N° 1» */
+    public static function textoRespuesta(array $q): string
+    {
+        return nombreCorto($q['CAJERO_NOMBRES'], $q['CAJERO_APELLIDOS']) . ' respondió por el faltante de ' . $q['TIENDA'] . ' · Caja N° ' . (int) $q['NUMERO_CAJA'];
     }
 
     /** Correos de los administradores activos */

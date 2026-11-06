@@ -83,7 +83,8 @@ $tiendaActual = $tiendas->tienda($cajaAbierta ? (int) $cajaAbierta['ID_TIENDA'] 
 
 // El cajero primero abre su caja: hasta abrirla solo ve «Abre tu caja» (lo demás aparece después)
 define('CAJERO_SIN_CAJA', $u->puedeAbrirCaja() && $cajaAbierta === null);
-if (CAJERO_SIN_CAJA && !in_array($accion, ['caja_inicio', 'caja_abrir'], true)) {
+// (también puede leer y responder las preguntas del Administrador por un faltante de caja)
+if (CAJERO_SIN_CAJA && !in_array($accion, ['caja_inicio', 'caja_abrir', 'consultas', 'responder_consulta'], true)) {
     header('Location: ?accion=caja_inicio');
     exit;
 }
@@ -92,6 +93,8 @@ $catalogo   = new ProductoController($u, $tiendaActual, $productos, $lotes);
 // Faltantes de caja: el Administrador los ve en la campana de arriba (y le llegan por correo al cerrar la caja)
 $notificaciones = new NotificacionRepository($pdo);
 define('FALTANTES_NUEVOS', $u->puedeVerDineroCajas() ? $notificaciones->nuevos($u->getIdEmpleado()) : null);
+// Cajero: preguntas o reportes del Administrador que todavía no respondió
+define('CONSULTAS_PENDIENTES', $u->puedeAbrirCaja() ? $notificaciones->pendientesDelCajero($u->getIdEmpleado()) : 0);
 
 $caja       = new CajaController($u, $tiendaActual, $cajas, $tiendas, $notificaciones);
 $ventas     = new VentaController($u, $tiendaActual, new VentaRepository($pdo), $cajas, $productos);
@@ -118,6 +121,8 @@ $rutas = [
     'caja_abrir'   => [null, fn() => $caja->abrir()],
     'caja_inicio'  => [fn() => $caja->inicio(), null],
     'caja_cerrar'  => [null, fn() => $caja->cerrar()],
+    'consultas'    => [fn() => $caja->consultas(), null],                  // el cajero lee y responde al Administrador
+    'responder_consulta' => [null, fn() => $caja->responder()],
 
     'venta'        => [fn() => $ventas->nueva(), fn() => $ventas->actualizar()],
     'cliente'      => [fn() => $ventas->buscarCliente(), null],
@@ -141,7 +146,8 @@ $rutas = [
     'alertas'      => [fn() => $admin->alertas(), null],
     'historial'    => [fn() => $admin->historial(), null],
     'faltantes'    => [fn() => $admin->faltantes(), null],
-    'faltantes_n'  => [fn() => $admin->faltantesNuevos(), null],   // la campana pregunta cada 30 s si hay algo nuevo
+    'faltantes_n'  => [fn() => $admin->faltantesNuevos(), null],
+    'consultar_faltante' => [null, fn() => $admin->consultar()],          // preguntar o reportar al cajero   // la campana pregunta cada 30 s si hay algo nuevo
 ];
 
 $ruta = $rutas[$accion][$esPost ? 1 : 0] ?? null;

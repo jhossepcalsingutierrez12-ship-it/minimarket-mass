@@ -124,4 +124,36 @@ class CajaController extends Controlador
         }
         $this->redirigir('caja');
     }
+
+    /* ====== Preguntas y reportes del Administrador por un faltante de caja (las ve y responde el cajero) ====== */
+
+    public function consultas(array $errores = [], array $form = []): void
+    {
+        $this->exigir($this->usuario->puedeAbrirCaja() && $this->notificaciones !== null);
+        $this->vista('caja/consultas', [
+            'lista' => $this->notificaciones->consultasDelCajero($this->usuario->getIdEmpleado()),
+            'hayConsultas' => $this->notificaciones->hayConsultas(),
+            'errores' => $errores, 'form' => $form,
+        ]);
+    }
+
+    public function responder(): void
+    {
+        $this->exigir($this->usuario->puedeAbrirCaja() && $this->notificaciones !== null);
+        $id = self::entero('consulta') ?? 0;
+        $respuesta = self::texto('respuesta', 500);
+        if (mb_strlen($respuesta) < 10) {
+            $this->consultas(['respuesta' => 'Cuenta qué pasó con el dinero (al menos 10 letras).', 'consulta' => $id], ['respuesta' => $respuesta]);
+            return;
+        }
+        try {
+            $q = $this->notificaciones->responder($this->usuario, $id, $respuesta);
+            Historial::anotar($this->usuario, 'RESPONDER_FALTANTE', 'Respondió por el faltante de ' . sol(-(float) $q['DIFERENCIA'])
+                . " en {$q['TIENDA']} · Caja N° {$q['NUMERO_CAJA']} (sesión {$q['ID_SESION']})");
+            $this->aviso('ok', 'Respuesta enviada. El Administrador la verá en su campana.');
+        } catch (DomainException $e) {
+            $this->aviso('err', $e->getMessage());
+        }
+        $this->redirigir('consultas');
+    }
 }

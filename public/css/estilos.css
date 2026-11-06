@@ -472,3 +472,31 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px soli
 tr.fila-nueva td{background:var(--bad-bg)}
 @keyframes campanaSuena{25%{transform:rotate(-12deg)}75%{transform:rotate(12deg)}}
 @media (prefers-reduced-motion: reduce){.campana-noti.hay{animation:none}}
+
+/* Preguntar o reportar al cajero por un faltante (Administrador) y responder (cajero) */
+tr.fila-consulta td{padding-top:0;border-top:0}
+.hilo{display:grid;gap:6px;margin:4px 0 10px;max-width:760px}
+.hilo-msg{margin:0;padding:8px 12px;border:2px solid var(--line);border-radius:6px;background:#fff;font-size:.9rem}
+.hilo-msg.respuesta{margin-left:28px;border-color:var(--ok);background:var(--ok-bg)}
+.hilo-msg .tag{margin-right:6px}
+.hilo-espera{display:flex;align-items:center;gap:6px;margin:0 0 0 28px;color:var(--muted);font-size:.85rem;font-style:italic}
+.consultar summary{list-style:none;display:inline-flex;cursor:pointer}
+.consultar summary::-webkit-details-marker{display:none}
+.consultar[open] summary{background:var(--k);color:var(--y)}
+.consultar-form{max-width:760px;margin-top:10px;padding:14px;border:2px solid var(--k);border-radius:6px;background:#fff}
+.consultar-form fieldset{border:0;padding:0;margin:0 0 10px}
+.consultar-form legend{font-weight:800;margin-bottom:6px}
+.opcion-tipo{display:flex;align-items:center;gap:8px;min-height:36px;font-weight:400;cursor:pointer}
+.consultar-form textarea,.consulta textarea{width:100%;font:inherit;padding:10px 12px;border:2px solid var(--k);border-radius:4px;resize:vertical}
+.sugerencias{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.sugerencias .chip{font-size:.75rem;text-transform:none;font-weight:600;padding:6px 10px}
+.consultas{display:grid;gap:16px;max-width:820px}
+.consulta.pendiente{border-color:var(--bad);box-shadow:4px 4px 0 var(--bad)}
+.consulta-cab{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.consulta-fecha{margin-left:auto;color:var(--muted);font-size:.85rem}
+.consulta-caja{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:0 0 10px;font-size:.9rem}
+.consulta-msg{margin:0 0 12px;padding:12px 14px;border-left:5px solid var(--k);background:var(--y-soft);border-radius:0 6px 6px 0}
+.consulta-msg.respuesta{border-left-color:var(--ok);background:var(--ok-bg);margin-left:24px}
+.consulta-msg cite{display:block;margin-top:6px;color:var(--muted);font-size:.82rem;font-style:normal}
+.msg.warn{background:var(--warn-bg);color:var(--warn);border-color:var(--warn)}
+@media (max-width:760px){.hilo-msg.respuesta,.hilo-espera,.consulta-msg.respuesta{margin-left:12px}}

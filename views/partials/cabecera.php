@@ -16,6 +16,7 @@ $menu = [
         ['venta', 'Nueva venta', 'carro', true],
         ['ventas', 'Ventas', 'lista', $u->puedeVerVentas()],
         ['listar', 'Catálogo', 'cat', true],
+        ['consultas', 'Preguntas del Administrador', 'info', true],
     ] : [
         ['listar', 'Catálogo', 'cat', true],
         ['caja', 'Caja', 'caja', true],
@@ -41,12 +42,14 @@ $menu = [
 ];
 // Cajero que todavía no abre su caja: el menú solo muestra «Abre tu caja»
 if (defined('CAJERO_SIN_CAJA') && CAJERO_SIN_CAJA) {
-    $menu = ['Tienda' => [['caja_inicio', 'Abre tu caja', 'caja', true]]];
-    $seccion = 'caja_inicio';
+    $menu = ['Tienda' => [['caja_inicio', 'Abre tu caja', 'caja', true], ['consultas', 'Preguntas del Administrador', 'info', true]]];
+    $seccion = $seccion === 'consultas' ? 'consultas' : 'caja_inicio';
 }
 // Administrador: faltantes de caja que todavía no vio (en la página de faltantes ya cuentan como vistos)
 $faltantes = defined('FALTANTES_NUEVOS') && FALTANTES_NUEVOS !== null ? FALTANTES_NUEVOS : null;
 $nFaltantes = $faltantes !== null && $seccion !== 'faltantes' ? $faltantes['n'] : 0;
+// Cajero: preguntas del Administrador por un faltante que todavía no respondió
+$nConsultas = defined('CONSULTAS_PENDIENTES') && $seccion !== 'consultas' ? CONSULTAS_PENDIENTES : 0;
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -86,6 +89,7 @@ $nFaltantes = $faltantes !== null && $seccion !== 'faltantes' ? $faltantes['n'] 
                     <?= icono($icono) ?>
                     <?= e($texto) ?>
                     <?php if ($accion === 'faltantes' && $nFaltantes): ?><span class="menu-n"><?= $nFaltantes ?></span><?php endif; ?>
+                    <?php if ($accion === 'consultas' && $nConsultas): ?><span class="menu-n"><?= $nConsultas ?></span><?php endif; ?>
                 </a>
             <?php endforeach; ?>
         <?php endforeach; ?>
@@ -94,8 +98,24 @@ $nFaltantes = $faltantes !== null && $seccion !== 'faltantes' ? $faltantes['n'] 
     <?php if ($nFaltantes): ?>
         <div class="banda-faltante" role="alert">
             <?= icono('billete', 22) ?>
-            <span><b><?= $nFaltantes === 1 ? 'Faltó dinero al cerrar una caja' : "Faltó dinero al cerrar $nFaltantes cajas" ?>.</b>
-                <?= e(NotificacionRepository::texto($faltantes['ultimo'])) ?><?= $nFaltantes > 1 ? ' y ' . ($nFaltantes - 1) . ' más · total ' . e(sol($faltantes['total'])) : '' ?>.</span>
+            <span>
+                <?php if ($faltantes['faltantes']): $nf = $faltantes['faltantes']; ?>
+                    <b><?= $nf === 1 ? 'Faltó dinero al cerrar una caja' : "Faltó dinero al cerrar $nf cajas" ?>.</b>
+                    <?= e(NotificacionRepository::texto($faltantes['ultimo'])) ?><?= $nf > 1 ? ' y ' . ($nf - 1) . ' más · total ' . e(sol($faltantes['total'])) : '' ?>.
+                <?php endif; ?>
+                <?php if ($faltantes['respuestas']): $nr = count($faltantes['respuestas']); ?>
+                    <b><?= $nr === 1 ? 'Un cajero te respondió' : "$nr cajeros te respondieron" ?>.</b>
+                    <?= e(NotificacionRepository::textoRespuesta($faltantes['respuestas'][0])) ?>.
+                <?php endif; ?>
+            </span>
             <a class="btn sm" href="?accion=faltantes">Revisar</a>
+        </div>
+    <?php endif; ?>
+    <?php if ($nConsultas): ?>
+        <div class="banda-faltante" role="alert">
+            <?= icono('info', 22) ?>
+            <span><b><?= $nConsultas === 1 ? 'El Administrador te pregunta' : "El Administrador te hizo $nConsultas preguntas" ?> por un faltante de dinero en tu caja.</b>
+                Cuéntale qué pasó.</span>
+            <a class="btn sm" href="?accion=consultas">Responder</a>
         </div>
     <?php endif; ?>

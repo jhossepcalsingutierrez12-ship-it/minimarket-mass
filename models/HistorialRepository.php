@@ -23,6 +23,9 @@ class HistorialRepository extends Repositorio
         'CERRAR_CAJA'          => 'Cerró una caja',
         'FALTANTE_CAJA'        => 'Faltó dinero en una caja',
         'REVISAR_FALTANTES'    => 'Revisó los faltantes de caja',
+        'PREGUNTAR_FALTANTE'   => 'Preguntó al cajero por un faltante',
+        'REPORTAR_FALTANTE'    => 'Reportó un faltante al cajero',
+        'RESPONDER_FALTANTE'   => 'Respondió por un faltante',
     ];
 
     public function registrar(int $idEmpleado, string $accion, string $detalle): void

@@ -30,8 +30,8 @@ if (document.body.dataset.faltantes !== undefined) {
       if (d.n > conocidos && d.texto) {
         const zona = document.createElement('div');
         zona.className = 'toast-zona';
-        zona.innerHTML = '<div class="toast err toast-faltante" role="alert">' + campana.querySelector('svg').outerHTML
-          + '<span><b>¡Faltó dinero al cerrar una caja!</b><br></span>'
+        zona.innerHTML = '<div class="toast ' + (d.tipo === 'respuesta' ? 'info' : 'err') + ' toast-faltante" role="alert">' + campana.querySelector('svg').outerHTML
+          + '<span><b>' + (d.tipo === 'respuesta' ? 'Respuesta de un cajero' : '¡Faltó dinero al cerrar una caja!') + '</b><br></span>'
           + '<a class="btn sm" href="?accion=faltantes">Revisar</a>'
           + '<button type="button" class="toast-x" aria-label="Cerrar aviso"><svg class="ico" aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg></button></div>';
         zona.querySelector('span').append(d.texto);   // como texto, nunca como HTML
@@ -325,3 +325,12 @@ if (sugerido) {
     if (prev) prev.innerHTML = o.dataset.foto ? `<img src="${o.dataset.foto}" alt=""><span>Foto lista del producto nuevo.</span>` : '<span>Opcional. Sin foto se muestra el ícono de la categoría.</span>';
   });
 }
+
+// 20. Faltantes de caja (Administrador): los mensajes rápidos llenan el texto y marcan si es pregunta o reporte
+$$('.consultar-form .sugerencias .chip').forEach(chip => chip.addEventListener('click', () => {
+  const form = chip.closest('form');
+  form.querySelector('textarea[name=mensaje]').value = chip.dataset.texto;
+  const radio = form.querySelector(`input[name=tipo][value="${chip.dataset.tipo}"]`);
+  if (radio) radio.checked = true;
+  form.querySelector('textarea[name=mensaje]').focus();
+}));
