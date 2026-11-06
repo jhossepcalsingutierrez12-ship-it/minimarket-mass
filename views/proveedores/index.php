@@ -6,6 +6,7 @@ require __DIR__ . '/../partials/cabecera.php';
 $csrf = e(AuthController::token());
 $ayuda = [
     'Aquí están las <b>empresas que le venden mercadería a Mass</b> (lácteos, abarrotes, bebidas, limpieza), con su RUC y a quién llamar.',
+    'Cada proveedor tiene su <b>categoría</b> (Abarrotes, Lácteos, Bebidas o Limpieza): al comprarle, solo salen los productos de esa categoría.',
     'Cada proveedor muestra <b>qué nos vende</b>, cuántas compras se le hicieron, cuánto se le compró en total y la fecha de la última compra.',
     'Al registrar una compra en <a href="?accion=compras">Compras</a> eliges a uno de ellos. Si dejas de trabajar con uno, <b>desactívalo</b>: no se borra (sus compras siguen en el historial), solo deja de salir al comprar.',
 ];
@@ -23,7 +24,9 @@ $ayuda = [
         <tbody>
         <?php foreach ($lista as $p): ?>
             <tr>
-                <td><b><?= e($p['RAZON_SOCIAL']) ?></b><span class="prov-rubro"><?= e($p['RUBRO'] ?? 'Sin rubro registrado') ?></span></td>
+                <td><b><?= e($p['RAZON_SOCIAL']) ?></b>
+                    <?php $cp = $p['CATEGORIA_SKU'] ?? null; ?>
+                    <span class="prov-rubro"><?= $cp && isset(CATEGORIAS[$cp]) ? '<span class="cat-ref cat-' . e($cp) . '">' . imagenCategoria($cp, 18) . e(CATEGORIAS[$cp]['nombre']) . '</span> ' : '' ?><?= e($p['RUBRO'] ?? 'Sin rubro registrado') ?></span></td>
                 <td class="nw sku"><?= e($p['RUC']) ?></td>
                 <td><?= e($p['CONTACTO'] ?? '—') ?>
                     <?= $p['TELEFONO'] ? '<br><span class="sub" style="font-size:.8rem">Tel. ' . e($p['TELEFONO']) . '</span>' : '' ?>
@@ -60,7 +63,18 @@ $ayuda = [
                 <input id="razon" name="razon" maxlength="120" value="<?= valor($form, 'razon') ?>" placeholder="Distribuidora ... S.A.C.">
                 <?= error($errores, 'razon') ?>
             </div>
-            <div class="campo todo">
+            <div class="<?= claseCampo($errores, 'categoria') ?>">
+                <label for="categoria">Categoría de sus productos</label>
+                <select id="categoria" name="categoria">
+                    <option value="">De todo (varias categorías)</option>
+                    <?php foreach (CATEGORIAS as $c => $cat): ?>
+                        <option value="<?= e($c) ?>" <?= ($form['categoria'] ?? '') === $c ? 'selected' : '' ?>><?= e($cat['nombre']) ?> (<?= e($c) ?>)</option>
+                    <?php endforeach; ?>
+                </select>
+                <span class="hint">Al registrar una compra a este proveedor solo saldrán productos de esta categoría.</span>
+                <?= error($errores, 'categoria') ?>
+            </div>
+            <div class="campo">
                 <label for="rubro">¿Qué nos vende?</label>
                 <input id="rubro" name="rubro" maxlength="150" value="<?= valor($form, 'rubro') ?>" placeholder="Ej.: gaseosas, agua y refrescos">
             </div>

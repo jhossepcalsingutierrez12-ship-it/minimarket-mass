@@ -38,14 +38,14 @@ class ProveedorRepository extends Repositorio
         return (int) $stmt->fetchColumn() > 0;
     }
 
-    public function crear(string $ruc, string $razon, ?string $rubro, ?string $contacto, ?string $telefono, ?string $correo): int
+    public function crear(string $ruc, string $razon, ?string $rubro, ?string $categoria, ?string $contacto, ?string $telefono, ?string $correo): int
     {
-        return $this->enTransaccion(function () use ($ruc, $razon, $rubro, $contacto, $telefono, $correo): int {
+        return $this->enTransaccion(function () use ($ruc, $razon, $rubro, $categoria, $contacto, $telefono, $correo): int {
             $id = $this->siguienteId('PROVEEDOR', 'ID_PROVEEDOR');
             $this->pdo->prepare("
-                INSERT INTO PROVEEDOR (ID_PROVEEDOR, RUC, RAZON_SOCIAL, RUBRO, CONTACTO, TELEFONO, CORREO, ESTADO, FECHA_REGISTRO)
-                VALUES (:id, :ruc, :razon, :rubro, :contacto, :tel, :correo, 'A', :f)")
-                ->execute([':id' => $id, ':ruc' => $ruc, ':razon' => $razon, ':rubro' => $rubro, ':contacto' => $contacto,
+                INSERT INTO PROVEEDOR (ID_PROVEEDOR, RUC, RAZON_SOCIAL, RUBRO, CATEGORIA_SKU, CONTACTO, TELEFONO, CORREO, ESTADO, FECHA_REGISTRO)
+                VALUES (:id, :ruc, :razon, :rubro, :cat, :contacto, :tel, :correo, 'A', :f)")
+                ->execute([':id' => $id, ':ruc' => $ruc, ':razon' => $razon, ':rubro' => $rubro, ':cat' => $categoria, ':contacto' => $contacto,
                            ':tel' => $telefono, ':correo' => $correo, ':f' => self::ahora()]);
             return $id;
         });

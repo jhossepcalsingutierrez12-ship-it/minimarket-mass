@@ -1,5 +1,5 @@
 <?php
-/** @var array $errores @var array $form @var array $subcategorias @var array $marcas */
+/** @var array $errores @var array $form @var array $subcategorias @var array $marcas @var array $sugeridos */
 $titulo = 'Agregar producto';
 $seccion = 'agregar';
 require __DIR__ . '/../partials/cabecera.php';
@@ -10,6 +10,29 @@ require __DIR__ . '/../partials/cabecera.php';
 
 <form class="card form" method="post" action="?accion=agregar" enctype="multipart/form-data" novalidate>
     <input type="hidden" name="csrf" value="<?= e(AuthController::token()) ?>">
+    <?php if ($sugeridos): $faltanDatos = array_filter($sugeridos, fn($s) => $s['categoria'] === '' || $s['marca_id'] === ''); ?>
+        <div class="sugeridos">
+            <label for="sugerido">Productos nuevos: elige uno y el formulario se llena solo</label>
+            <select id="sugerido">
+                <option value="">— Escribir un producto a mano —</option>
+                <?php foreach (CATEGORIAS as $pref => $cat):
+                    $deCat = array_filter($sugeridos, fn($s) => str_starts_with($s['sku'], $pref));
+                    if (!$deCat) continue; ?>
+                    <optgroup label="<?= e($cat['nombre']) ?> (<?= e($pref) ?>)">
+                        <?php foreach ($deCat as $s): ?>
+                            <option value="<?= e($s['sku']) ?>" data-nombre="<?= e($s['nombre']) ?>" data-categoria="<?= e($s['categoria']) ?>" data-marca="<?= e($s['marca_id']) ?>"
+                                    data-precio="<?= e($s['precio']) ?>" data-contenido="<?= e($s['contenido']) ?>" data-perecible="<?= e($s['perecible']) ?>"
+                                    data-stock="<?= (int) $s['stock'] ?>" data-minimo="<?= (int) $s['minimo'] ?>" data-foto="<?= e($s['foto']) ?>"><?= e($s['sku'] . ' · ' . $s['nombre'] . ' · S/ ' . $s['precio']) ?></option>
+                        <?php endforeach; ?>
+                    </optgroup>
+                <?php endforeach; ?>
+            </select>
+            <span class="hint">Puedes cambiar cualquier dato antes de guardar. La foto ya está lista: no hace falta subirla.</span>
+            <?php if ($faltanDatos): ?>
+                <span class="hint" style="color:var(--bad)">Faltan marcas o subcategorías nuevas en la base: corre <code>database/productos_nuevos.sql</code>.</span>
+            <?php endif; ?>
+        </div>
+    <?php endif; ?>
     <div class="cols">
         <div class="<?= claseCampo($errores, 'sku') ?>">
             <label for="sku">Código SKU *</label>

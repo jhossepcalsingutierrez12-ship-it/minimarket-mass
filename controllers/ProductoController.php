@@ -37,7 +37,18 @@ class ProductoController extends Controlador
         $this->exigir($this->usuario->puedeAdministrarProductos());
         $subcategorias = $this->repo->subcategoriasPorPrefijo();
         $marcas = $this->repo->marcas();
-        $this->vista('productos/agregar', compact('errores', 'form', 'subcategorias', 'marcas'));
+        // Productos nuevos que todavía no están en el catálogo, con el ID de su marca y subcategoría
+        $sugeridos = [];
+        foreach (ProductoRepository::SUGERIDOS as $s) {
+            if ($this->repo->existeSku($s['sku'])) {
+                continue;
+            }
+            $s['categoria'] = (string) (array_search($s['subcategoria'], $subcategorias[substr($s['sku'], 0, 3)] ?? [], true) ?: '');
+            $s['marca_id'] = (string) (array_search($s['marca'], $marcas, true) ?: '');
+            $s['foto'] = is_file(__DIR__ . '/../public/img/productos/' . $s['sku'] . '.jpg') ? 'img/productos/' . $s['sku'] . '.jpg' : '';
+            $sugeridos[] = $s;
+        }
+        $this->vista('productos/agregar', compact('errores', 'form', 'subcategorias', 'marcas', 'sugeridos'));
     }
 
     public function agregar(): void

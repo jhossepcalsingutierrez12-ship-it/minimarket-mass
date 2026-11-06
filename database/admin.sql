@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS PROVEEDOR (
   RUC CHAR(11) NOT NULL,
   RAZON_SOCIAL VARCHAR(120) NOT NULL,
   RUBRO VARCHAR(150) NULL,                  -- qué le vende a Mass (lácteos, abarrotes...)
+  CATEGORIA_SKU CHAR(3) NULL,               -- de qué categoría son sus productos: ABA, LAC, BEB o LIM (NULL = de todo)
   CONTACTO VARCHAR(80) NULL,
   TELEFONO VARCHAR(15) NULL,
   CORREO VARCHAR(120) NULL,
@@ -34,6 +35,14 @@ SET @sql_rubro := IF(@hay_rubro = 0, 'ALTER TABLE PROVEEDOR ADD COLUMN RUBRO VAR
 PREPARE agregar_rubro FROM @sql_rubro;
 EXECUTE agregar_rubro;
 DEALLOCATE PREPARE agregar_rubro;
+
+-- Y la columna CATEGORIA_SKU (para que al comprar solo salgan sus productos)
+SET @hay_cat := (SELECT COUNT(*) FROM information_schema.COLUMNS
+                 WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'PROVEEDOR' AND COLUMN_NAME = 'CATEGORIA_SKU');
+SET @sql_cat := IF(@hay_cat = 0, 'ALTER TABLE PROVEEDOR ADD COLUMN CATEGORIA_SKU CHAR(3) NULL AFTER RUBRO', 'DO 0');
+PREPARE agregar_cat FROM @sql_cat;
+EXECUTE agregar_cat;
+DEALLOCATE PREPARE agregar_cat;
 
 -- ---------------------------------------------------------
 -- COMPRA: mercadería que llegó de un proveedor a una tienda
@@ -88,12 +97,12 @@ CREATE TABLE IF NOT EXISTS HISTORIAL (
 -- Datos de prueba
 -- ---------------------------------------------------------
 -- Si ya estaban (por ejemplo, con las tildes mal guardadas), se corrigen sus datos
-INSERT INTO PROVEEDOR (ID_PROVEEDOR, RUC, RAZON_SOCIAL, RUBRO, CONTACTO, TELEFONO, CORREO, ESTADO, FECHA_REGISTRO) VALUES
-  (1, '20601111111', 'Distribuidora Lácteos del Sur S.A.C.', 'Leche, yogurt y otros lácteos (marca Gloria)', 'Marco Linares', '054-231100', 'ventas@lacteosdelsur.pe', 'A', '2026-01-10 09:00:00'),
-  (2, '20602222222', 'Abarrotes Mayoristas Arequipa E.I.R.L.', 'Arroz, azúcar, aceite, menestras y otros abarrotes', 'Rocío Zegarra', '054-244500', NULL, 'A', '2026-01-10 09:30:00'),
-  (3, '20603333333', 'Bebidas y Refrescos Characato S.A.C.', 'Gaseosas, agua y refrescos', 'Iván Chávez', '959111222', NULL, 'A', '2026-02-02 10:00:00'),
-  (4, '20604444444', 'Limpieza Total Perú S.A.C.', 'Detergentes y productos de limpieza', NULL, NULL, 'pedidos@limpiezatotal.pe', 'A', '2026-03-15 11:00:00')
-ON DUPLICATE KEY UPDATE RAZON_SOCIAL = VALUES(RAZON_SOCIAL), RUBRO = VALUES(RUBRO), CONTACTO = VALUES(CONTACTO);
+INSERT INTO PROVEEDOR (ID_PROVEEDOR, RUC, RAZON_SOCIAL, RUBRO, CATEGORIA_SKU, CONTACTO, TELEFONO, CORREO, ESTADO, FECHA_REGISTRO) VALUES
+  (1, '20601111111', 'Distribuidora Lácteos del Sur S.A.C.', 'Leche, yogurt, mantequilla y otros lácteos', 'LAC', 'Marco Linares', '054-231100', 'ventas@lacteosdelsur.pe', 'A', '2026-01-10 09:00:00'),
+  (2, '20602222222', 'Abarrotes Mayoristas Arequipa E.I.R.L.', 'Arroz, azúcar, aceite, menestras, fideos, conservas y sal', 'ABA', 'Rocío Zegarra', '054-244500', NULL, 'A', '2026-01-10 09:30:00'),
+  (3, '20603333333', 'Bebidas y Refrescos Characato S.A.C.', 'Gaseosas, agua y refrescos', 'BEB', 'Iván Chávez', '959111222', NULL, 'A', '2026-02-02 10:00:00'),
+  (4, '20604444444', 'Limpieza Total Perú S.A.C.', 'Detergentes, lejía, papel higiénico y limpieza', 'LIM', NULL, NULL, 'pedidos@limpiezatotal.pe', 'A', '2026-03-15 11:00:00')
+ON DUPLICATE KEY UPDATE RAZON_SOCIAL = VALUES(RAZON_SOCIAL), RUBRO = VALUES(RUBRO), CATEGORIA_SKU = VALUES(CATEGORIA_SKU), CONTACTO = VALUES(CONTACTO);
 
 -- Una compra de ejemplo: los lotes 1 y 2 de leche y yogurt
 INSERT IGNORE INTO COMPRA (ID_COMPRA, ID_PROVEEDOR, ID_TIENDA, ID_EMPLEADO, NUMERO_DOC, FECHA_RECEPCION, TOTAL) VALUES

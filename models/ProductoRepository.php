@@ -18,6 +18,23 @@ class ProductoRepository
     // Las 3 letras del SKU dicen la categoría principal (CATEGORIA sin padre)
     private const PREFIJOS = ['ABA' => 'Abarrotes', 'LAC' => 'Lácteos', 'BEB' => 'Bebidas', 'LIM' => 'Limpieza'];
 
+    /**
+     * Productos nuevos listos para agregar (sus fotos están en public/img/productos/<SKU>.jpg).
+     * En «Agregar producto» se eligen de una lista y el formulario se llena solo.
+     * La marca y la subcategoría se buscan por nombre (las crea database/productos_nuevos.sql).
+     */
+    public const SUGERIDOS = [
+        ['sku' => 'ABA-0005', 'nombre' => 'Fideo spaghetti Don Vittorio 500 g', 'subcategoria' => 'Fideos y pastas', 'marca' => 'Don Vittorio', 'precio' => '3.90', 'contenido' => '0.5', 'perecible' => 'N', 'stock' => 40, 'minimo' => 15],
+        ['sku' => 'ABA-0006', 'nombre' => 'Atún Florida en aceite 140 g', 'subcategoria' => 'Conservas', 'marca' => 'Florida', 'precio' => '6.50', 'contenido' => '0.14', 'perecible' => 'N', 'stock' => 36, 'minimo' => 12],
+        ['sku' => 'ABA-0007', 'nombre' => 'Sal yodada Emsal 1 kg', 'subcategoria' => 'Sal y condimentos', 'marca' => 'Emsal', 'precio' => '1.80', 'contenido' => '1', 'perecible' => 'N', 'stock' => 30, 'minimo' => 10],
+        ['sku' => 'BEB-0003', 'nombre' => 'Coca-Cola sabor original 1.5 L', 'subcategoria' => 'Gaseosas', 'marca' => 'Coca-Cola', 'precio' => '7.50', 'contenido' => '1.5', 'perecible' => 'N', 'stock' => 36, 'minimo' => 12],
+        ['sku' => 'BEB-0004', 'nombre' => 'Agua Cielo sin gas 625 ml', 'subcategoria' => 'Aguas', 'marca' => 'Cielo', 'precio' => '1.50', 'contenido' => '0.625', 'perecible' => 'N', 'stock' => 48, 'minimo' => 24],
+        ['sku' => 'LAC-0004', 'nombre' => 'Mantequilla Gloria con sal 200 g', 'subcategoria' => 'Mantequillas', 'marca' => 'Gloria', 'precio' => '8.90', 'contenido' => '0.2', 'perecible' => 'S', 'stock' => 20, 'minimo' => 8],
+        ['sku' => 'LAC-0005', 'nombre' => 'Yogurt Laive vainilla 1 L', 'subcategoria' => 'Yogurts', 'marca' => 'Laive', 'precio' => '7.50', 'contenido' => '1', 'perecible' => 'S', 'stock' => 24, 'minimo' => 10],
+        ['sku' => 'LIM-0002', 'nombre' => 'Lejía Clorox 1 L', 'subcategoria' => 'Lejías y desinfectantes', 'marca' => 'Clorox', 'precio' => '4.20', 'contenido' => '1', 'perecible' => 'N', 'stock' => 30, 'minimo' => 10],
+        ['sku' => 'LIM-0003', 'nombre' => 'Papel higiénico Elite 4 rollos', 'subcategoria' => 'Papel higiénico', 'marca' => 'Elite', 'precio' => '6.90', 'contenido' => '0.4', 'perecible' => 'N', 'stock' => 30, 'minimo' => 10],
+    ];
+
     // Recibe la conexión ya creada (no la crea él mismo)
     public function __construct(private PDO $pdo) {}
 

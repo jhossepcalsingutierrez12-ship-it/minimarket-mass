@@ -33,9 +33,10 @@ $filas = max(5, count($form['lineas']));
                 <select id="proveedor" name="proveedor">
                     <option value="">Elige…</option>
                     <?php foreach ($proveedores as $p): ?>
-                        <option value="<?= (int) $p['ID_PROVEEDOR'] ?>" <?= $form['proveedor'] === (string) $p['ID_PROVEEDOR'] ? 'selected' : '' ?>><?= e($p['RAZON_SOCIAL']) ?><?= $p['RUBRO'] ? ' · ' . e($p['RUBRO']) : '' ?></option>
+                        <option value="<?= (int) $p['ID_PROVEEDOR'] ?>" data-cat="<?= e($p['CATEGORIA_SKU'] ?? '') ?>" <?= $form['proveedor'] === (string) $p['ID_PROVEEDOR'] ? 'selected' : '' ?>><?= e($p['RAZON_SOCIAL']) ?><?= $p['RUBRO'] ? ' · ' . e($p['RUBRO']) : '' ?></option>
                     <?php endforeach; ?>
                 </select>
+                <span class="hint" id="filtroProv"></span>
                 <?= error($errores, 'proveedor') ?>
             </div>
             <div class="<?= claseCampo($errores, 'tienda') ?>">
@@ -63,7 +64,7 @@ $filas = max(5, count($form['lineas']));
                         <select name="producto[<?= $i ?>]" aria-label="Producto de la fila <?= $i + 1 ?>">
                             <option value="">—</option>
                             <?php foreach ($productos as $p): ?>
-                                <option value="<?= $p->getIdProducto() ?>" data-per="<?= $p->esPerecible() ? 1 : 0 ?>" <?= $l['producto'] === (string) $p->getIdProducto() ? 'selected' : '' ?>><?= e($p->getCodigoSku() . ' · ' . $p->getNombre()) ?> (stock <?= $p->getStockActual() ?>)</option>
+                                <option value="<?= $p->getIdProducto() ?>" data-cat="<?= e(categoriaDe($p->getCodigoSku())) ?>" data-per="<?= $p->esPerecible() ? 1 : 0 ?>" <?= $l['producto'] === (string) $p->getIdProducto() ? 'selected' : '' ?>><?= e($p->getCodigoSku() . ' · ' . $p->getNombre()) ?> (stock <?= $p->getStockActual() ?>)</option>
                             <?php endforeach; ?>
                         </select>
                         <?= isset($errores["linea$i"]) ? '<span class="err">' . e($errores["linea$i"]) . '</span>' : '' ?>

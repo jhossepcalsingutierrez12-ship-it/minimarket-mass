@@ -259,3 +259,36 @@ if (periodo) {
   periodo.addEventListener('change', verRango);
   verRango();
 }
+
+// 18. Agregar producto: al elegir un producto nuevo de la lista, el formulario se llena solo
+const sugerido = document.getElementById('sugerido');
+if (sugerido) {
+  sugerido.addEventListener('change', () => {
+    const o = sugerido.selectedOptions[0];
+    if (!o || !o.value) return;
+    const poner = (id, v) => { const el = document.getElementById(id); if (el && v !== undefined) { el.value = v; el.dispatchEvent(new Event('input', {bubbles: true})); } };
+    poner('sku', o.value); poner('nombre', o.dataset.nombre); poner('precio', o.dataset.precio); poner('contenido', o.dataset.contenido);
+    poner('perecible', o.dataset.perecible); poner('stock', o.dataset.stock); poner('minimo', o.dataset.minimo);
+    poner('categoria', o.dataset.categoria); poner('marca', o.dataset.marca);
+    const prev = document.getElementById('fotoPrev');
+    if (prev) prev.innerHTML = o.dataset.foto ? `<img src="${o.dataset.foto}" alt=""><span>Foto lista del producto nuevo.</span>` : '<span>Opcional. Sin foto se muestra el ícono de la categoría.</span>';
+  });
+}
+
+// 19. Compras: al elegir el proveedor solo salen los productos de su categoría (Abarrotes → ABA, etc.)
+const provCompra = document.getElementById('proveedor');
+if (provCompra && document.querySelector('.lineas-compra')) {
+  const nombres = {ABA: 'Abarrotes', LAC: 'Lácteos', BEB: 'Bebidas', LIM: 'Limpieza'};
+  const filtrarProductos = () => {
+    const cat = provCompra.selectedOptions[0]?.dataset.cat || '';
+    document.querySelectorAll('.lineas-compra select[name^="producto"]').forEach(sel => {
+      sel.querySelectorAll('option[data-cat]').forEach(o => { o.hidden = o.disabled = !!cat && o.dataset.cat !== cat; });
+      if (sel.selectedOptions[0]?.disabled) sel.value = '';
+    });
+    const hint = document.getElementById('filtroProv');
+    if (hint) hint.textContent = cat ? `Solo se muestran los productos de ${nombres[cat]} (${cat}).` : (provCompra.value ? 'Este proveedor vende de todo: salen todos los productos.' : '');
+    fCompra && fCompra.dispatchEvent(new Event('input'));
+  };
+  provCompra.addEventListener('change', filtrarProductos);
+  filtrarProductos();
+}

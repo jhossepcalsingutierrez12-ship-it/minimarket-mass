@@ -52,13 +52,16 @@ class AdminController extends Controlador
     public function crearProveedor(): void
     {
         $this->exigir($this->usuario->puedeGestionarProveedores());
-        $form = ['ruc' => self::texto('ruc', 11), 'razon' => self::texto('razon', 120), 'rubro' => self::texto('rubro', 150), 'contacto' => self::texto('contacto', 80),
+        $form = ['ruc' => self::texto('ruc', 11), 'razon' => self::texto('razon', 120), 'rubro' => self::texto('rubro', 150), 'categoria' => self::texto('categoria', 3), 'contacto' => self::texto('contacto', 80),
                  'telefono' => self::texto('telefono', 15), 'correo' => self::texto('correo', 120)];
         $errores = [];
         if (preg_match('/^(10|20)\d{9}$/', $form['ruc']) !== 1) {
             $errores['ruc'] = 'El RUC tiene 11 dígitos y empieza con 10 o 20 (CK_PRV_1).';
         } elseif ($this->proveedores->existeRuc($form['ruc'])) {
             $errores['ruc'] = 'Ya hay un proveedor con ese RUC.';
+        }
+        if ($form['categoria'] !== '' && !isset(CATEGORIAS[$form['categoria']])) {
+            $errores['categoria'] = 'Elige la categoría.';
         }
         if (mb_strlen($form['razon']) < 3) {
             $errores['razon'] = 'Escribe la razón social.';
@@ -73,7 +76,7 @@ class AdminController extends Controlador
             $this->proveedores($errores, $form);
             return;
         }
-        $this->proveedores->crear($form['ruc'], $form['razon'], $form['rubro'] ?: null, $form['contacto'] ?: null, $form['telefono'] ?: null, $form['correo'] ?: null);
+        $this->proveedores->crear($form['ruc'], $form['razon'], $form['rubro'] ?: null, $form['categoria'] ?: null, $form['contacto'] ?: null, $form['telefono'] ?: null, $form['correo'] ?: null);
         Historial::anotar($this->usuario, 'REGISTRAR_PROVEEDOR', "Proveedor {$form['razon']} (RUC {$form['ruc']})");
         $this->aviso('ok', "Proveedor {$form['razon']} registrado.");
         $this->redirigir('proveedores');
@@ -137,6 +140,11 @@ class AdminController extends Controlador
             $p = $productos[(int) $fila['producto']] ?? null;
             if ($p === null) {
                 $errores["linea$i"] = 'Elige el producto.';
+                continue;
+            }
+            $catProv = $proveedor['CATEGORIA_SKU'] ?? null;
+            if ($catProv && !str_starts_with($p->getCodigoSku(), $catProv)) {
+                $errores["linea$i"] = 'Este proveedor solo vende ' . (CATEGORIAS[$catProv]['nombre'] ?? $catProv) . " ($catProv).";
                 continue;
             }
             if (isset($usados[$p->getIdProducto()])) {
